@@ -1,0 +1,40 @@
+{{ define "title" }}OTP Requests{{ end }}
+{{ define "content" }}
+<div class="d-flex justify-content-between mb-3">
+    <h2>OTP Requests</h2>
+    <a href="/otp_requests/new" class="btn btn-success">Add New OTP Request</a>
+</div>
+<table class="table table-bordered">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>User ID</th>
+        <th>OTP Code</th>
+        <th>Requested At</th>
+        <th>Delivery Method</th>
+        <th>Valid Till</th>
+        <th>Actions</th>
+    </tr>
+    </thead>
+    <tbody>
+    {{ range . }}
+    <tr>
+        <td>{{ .ID }}</td>
+        <td>{{ .UserID }}</td>
+        <td>{{ .OTPCode }}</td>
+        <td>{{ .RequestedAt.Format "2006-01-02 15:04:05" }}</td>
+        <td>{{ .DeliveryMethod }}</td>
+        <td>{{ .ValidTill }}</td>
+        <td>
+            <a href="/otp_requests/edit?id={{ .ID }}" class="btn btn-primary btn-sm">Edit</a>
+            <form action="/otp_requests/delete" method="POST" style="display:inline;">
+                <input type="hidden" name="id" value="{{ .ID }}">
+                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure?');">Delete</button>
+            </form>
+        </td>
+    </tr>
+    {{ end }}
+    </tbody>
+</table>
+{{ end }}
+{{ template "layout.html" . }}

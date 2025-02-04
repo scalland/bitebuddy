@@ -1,0 +1,56 @@
+{{ define "title" }}{{ if .ID }}Edit Restaurant{{ else }}New Restaurant{{ end }}{{ end }}
+{{ define "content" }}
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <h2>{{ if .ID }}Edit Restaurant{{ else }}New Restaurant{{ end }}</h2>
+        <form method="POST" action="{{ if .ID }}/restaurants/edit?id={{ .ID }}{{ else }}/restaurants/new{{ end }}">
+            <div class="mb-3">
+                <label for="name" class="form-label">Name</label>
+                <input type="text" name="name" class="form-control" id="name" value="{{ .Name }}" required>
+            </div>
+            <div class="mb-3">
+                <label for="address" class="form-label">Address</label>
+                <textarea name="address" class="form-control" id="address" required>{{ .Address }}</textarea>
+            </div>
+            <div class="row">
+                <div class="mb-3 col-md-6">
+                    <label for="latitude" class="form-label">Latitude</label>
+                    <input type="text" name="latitude" class="form-control" id="latitude" value="{{ .Latitude }}" required>
+                </div>
+                <div class="mb-3 col-md-6">
+                    <label for="longitude" class="form-label">Longitude</label>
+                    <input type="text" name="longitude" class="form-control" id="longitude" value="{{ .Longitude }}" required>
+                </div>
+            </div>
+            <div class="row">
+                <div class="mb-3 col-md-4">
+                    <label for="overall_rating" class="form-label">Overall Rating</label>
+                    <input type="text" name="overall_rating" class="form-control" id="overall_rating" value="{{ .OverallRating }}" required>
+                </div>
+                <div class="mb-3 col-md-4">
+                    <label for="price_for_two" class="form-label">Price for Two</label>
+                    <input type="text" name="price_for_two" class="form-control" id="price_for_two" value="{{ .PriceForTwo }}" required>
+                </div>
+                <div class="mb-3 col-md-4">
+                    <label for="image_url" class="form-label">Image URL</label>
+                    <input type="text" name="image_url" class="form-control" id="image_url" value="{{ .ImageURL }}">
+                </div>
+            </div>
+            <div class="mb-3 form-check">
+                <input type="checkbox" name="discount_available" class="form-check-input" id="discount_available" {{ if .DiscountAvailable }}checked{{ end }}>
+                <label for="discount_available" class="form-check-label">Discount Available</label>
+            </div>
+            <div class="mb-3 form-check">
+                <input type="checkbox" name="alcohol_available" class="form-check-input" id="alcohol_available" {{ if .AlcoholAvailable }}checked{{ end }}>
+                <label for="alcohol_available" class="form-check-label">Alcohol Available</label>
+            </div>
+            <div class="mb-3 form-check">
+                <input type="checkbox" name="portion_size_large" class="form-check-input" id="portion_size_large" {{ if .PortionSizeLarge }}checked{{ end }}>
+                <label for="portion_size_large" class="form-check-label">Portion Size Large</label>
+            </div>
+            <button type="submit" class="btn btn-primary">{{ if .ID }}Update{{ else }}Create{{ end }}</button>
+        </form>
+    </div>
+</div>
+{{ end }}
+{{ template "layout.html" . }}

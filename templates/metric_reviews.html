@@ -1,0 +1,36 @@
+{{ define "title" }}Metric Reviews{{ end }}
+{{ define "content" }}
+<div class="d-flex justify-content-between mb-3">
+    <h2>Metric Reviews</h2>
+    <a href="/metric_reviews/new" class="btn btn-success">Add New Metric Review</a>
+</div>
+<table class="table table-bordered">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Review ID</th>
+        <th>Metric ID</th>
+        <th>Score</th>
+        <th>Actions</th>
+    </tr>
+    </thead>
+    <tbody>
+    {{ range . }}
+    <tr>
+        <td>{{ .ID }}</td>
+        <td>{{ .ReviewID }}</td>
+        <td>{{ .MetricID }}</td>
+        <td>{{ .Score }}</td>
+        <td>
+            <a href="/metric_reviews/edit?id={{ .ID }}" class="btn btn-primary btn-sm">Edit</a>
+            <form action="/metric_reviews/delete" method="POST" style="display:inline;">
+                <input type="hidden" name="id" value="{{ .ID }}">
+                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure?');">Delete</button>
+            </form>
+        </td>
+    </tr>
+    {{ end }}
+    </tbody>
+</table>
+{{ end }}
+{{ template "layout.html" . }}

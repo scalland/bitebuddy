@@ -1,0 +1,28 @@
+{{ define "title" }}{{ if .ID }}Edit Review{{ else }}New Review{{ end }}{{ end }}
+{{ define "content" }}
+<div class="row">
+    <div class="col-md-6 offset-md-3">
+        <h2>{{ if .ID }}Edit Review{{ else }}New Review{{ end }}</h2>
+        <form method="POST" action="{{ if .ID }}/reviews/edit?id={{ .ID }}{{ else }}/reviews/new{{ end }}">
+            <div class="mb-3">
+                <label for="restaurant_id" class="form-label">Restaurant ID</label>
+                <input type="text" name="restaurant_id" class="form-control" id="restaurant_id" value="{{ .RestaurantID }}" required>
+            </div>
+            <div class="mb-3">
+                <label for="user_id" class="form-label">User ID</label>
+                <input type="text" name="user_id" class="form-control" id="user_id" value="{{ .UserID }}" required>
+            </div>
+            <div class="mb-3">
+                <label for="overall_score" class="form-label">Overall Score</label>
+                <input type="text" name="overall_score" class="form-control" id="overall_score" value="{{ .OverallScore }}" required>
+            </div>
+            <div class="mb-3">
+                <label for="review_text" class="form-label">Review Text</label>
+                <textarea name="review_text" class="form-control" id="review_text" required>{{ .ReviewText }}</textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">{{ if .ID }}Update{{ else }}Create{{ end }}</button>
+        </form>
+    </div>
+</div>
+{{ end }}
+{{ template "layout.html" . }}

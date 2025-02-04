@@ -1,0 +1,32 @@
+{{ define "title" }}{{ if .ID }}Edit Metric{{ else }}New Metric{{ end }}{{ end }}
+{{ define "content" }}
+<div class="row">
+    <div class="col-md-6 offset-md-3">
+        <h2>{{ if .ID }}Edit Metric{{ else }}New Metric{{ end }}</h2>
+        <form method="POST" action="{{ if .ID }}/metrics/edit?id={{ .ID }}{{ else }}/metrics/new{{ end }}">
+            <div class="mb-3">
+                <label for="metric_name" class="form-label">Metric Name</label>
+                <input type="text" name="metric_name" class="form-control" id="metric_name" value="{{ .MetricName }}" required>
+            </div>
+            <div class="mb-3">
+                <label for="parent_metric_id" class="form-label">Parent Metric ID (optional)</label>
+                <input type="text" name="parent_metric_id" class="form-control" id="parent_metric_id" value="{{ if .ParentMetricID.Valid }}{{ .ParentMetricID.Int64 }}{{ end }}">
+            </div>
+            <div class="mb-3 form-check">
+                <input type="checkbox" name="is_sub_metric" class="form-check-input" id="is_sub_metric" {{ if .IsSubMetric }}checked{{ end }}>
+                <label for="is_sub_metric" class="form-check-label">Is Sub Metric</label>
+            </div>
+            <div class="mb-3">
+                <label for="display_type_id" class="form-label">Display Type ID</label>
+                <input type="text" name="display_type_id" class="form-control" id="display_type_id" value="{{ .DisplayTypeID }}" required>
+            </div>
+            <div class="mb-3">
+                <label for="metric_type_id" class="form-label">Metric Type ID</label>
+                <input type="text" name="metric_type_id" class="form-control" id="metric_type_id" value="{{ .MetricTypeID }}" required>
+            </div>
+            <button type="submit" class="btn btn-primary">{{ if .ID }}Update{{ else }}Create{{ end }}</button>
+        </form>
+    </div>
+</div>
+{{ end }}
+{{ template "layout.html" . }}

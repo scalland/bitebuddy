@@ -1,0 +1,32 @@
+{{ define "title" }}{{ if .ID }}Edit User{{ else }}New User{{ end }}{{ end }}
+{{ define "content" }}
+<div class="row">
+    <div class="col-md-6 offset-md-3">
+        <h2>{{ if .ID }}Edit User{{ else }}New User{{ end }}</h2>
+        <form method="POST" action="{{ if .ID }}/users/edit?id={{ .ID }}{{ else }}/users/new{{ end }}">
+            <div class="mb-3">
+                <label for="email" class="form-label">Email</label>
+                <input type="email" name="email" class="form-control" id="email" value="{{ .Email }}" required>
+            </div>
+            <div class="mb-3">
+                <label for="mobile" class="form-label">Mobile Number</label>
+                <input type="text" name="mobile" class="form-control" id="mobile" value="{{ .MobileNumber }}" required>
+            </div>
+            <div class="mb-3">
+                <label for="user_type" class="form-label">User Type</label>
+                <select name="user_type" class="form-select" id="user_type">
+                    <option value="1" {{ if eq .UserTypeID 1 }}selected{{ end }}>Admin</option>
+                    <option value="2" {{ if eq .UserTypeID 2 }}selected{{ end }}>Restaurant Owner</option>
+                    <option value="3" {{ if eq .UserTypeID 3 }}selected{{ end }}>Customer</option>
+                </select>
+            </div>
+            <div class="mb-3 form-check">
+                <input type="checkbox" name="is_active" class="form-check-input" id="is_active" {{ if .IsActive }}checked{{ end }}>
+                <label for="is_active" class="form-check-label">Active</label>
+            </div>
+            <button type="submit" class="btn btn-primary">{{ if .ID }}Update{{ else }}Create{{ end }}</button>
+        </form>
+    </div>
+</div>
+{{ end }}
+{{ template "layout.html" . }}

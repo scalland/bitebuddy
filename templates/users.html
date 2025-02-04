@@ -1,0 +1,42 @@
+{{ define "title" }}Users{{ end }}
+{{ define "content" }}
+<div class="d-flex justify-content-between mb-3">
+    <h2>Users</h2>
+    <a href="/users/new" class="btn btn-success">Add New User</a>
+</div>
+<table class="table table-bordered">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Email</th>
+        <th>Mobile</th>
+        <th>User Type</th>
+        <th>Active</th>
+        <th>Created At</th>
+        <th>Last Login</th>
+        <th>Actions</th>
+    </tr>
+    </thead>
+    <tbody>
+    {{ range . }}
+    <tr>
+        <td>{{ .ID }}</td>
+        <td>{{ .Email }}</td>
+        <td>{{ .MobileNumber }}</td>
+        <td>{{ .UserTypeID }}</td>
+        <td>{{ if .IsActive }}Yes{{ else }}No{{ end }}</td>
+        <td>{{ .CreatedAt.Format "2006-01-02 15:04:05" }}</td>
+        <td>{{ .LastLogin.Format "2006-01-02 15:04:05" }}</td>
+        <td>
+            <a href="/users/edit?id={{ .ID }}" class="btn btn-primary btn-sm">Edit</a>
+            <form action="/users/delete" method="POST" style="display:inline;">
+                <input type="hidden" name="id" value="{{ .ID }}">
+                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure?');">Delete</button>
+            </form>
+        </td>
+    </tr>
+    {{ end }}
+    </tbody>
+</table>
+{{ end }}
+{{ template "layout.html" . }}

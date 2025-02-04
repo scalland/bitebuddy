@@ -1,0 +1,20 @@
+{{ define "title" }}{{ if .ID }}Edit Filter{{ else }}New Filter{{ end }}{{ end }}
+{{ define "content" }}
+<div class="row">
+    <div class="col-md-6 offset-md-3">
+        <h2>{{ if .ID }}Edit Filter{{ else }}New Filter{{ end }}</h2>
+        <form method="POST" action="{{ if .ID }}/filters/edit?id={{ .ID }}{{ else }}/filters/new{{ end }}">
+            <div class="mb-3">
+                <label for="filter_type_id" class="form-label">Filter Type ID</label>
+                <input type="text" name="filter_type_id" class="form-control" id="filter_type_id" value="{{ .FilterTypeID }}" required>
+            </div>
+            <div class="mb-3">
+                <label for="filter_value" class="form-label">Filter Value</label>
+                <input type="text" name="filter_value" class="form-control" id="filter_value" value="{{ .FilterValue }}" required>
+            </div>
+            <button type="submit" class="btn btn-primary">{{ if .ID }}Update{{ else }}Create{{ end }}</button>
+        </form>
+    </div>
+</div>
+{{ end }}
+{{ template "layout.html" . }}

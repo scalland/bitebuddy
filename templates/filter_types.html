@@ -1,0 +1,32 @@
+{{ define "title" }}Filter Types{{ end }}
+{{ define "content" }}
+<div class="d-flex justify-content-between mb-3">
+    <h2>Filter Types</h2>
+    <a href="/filter_types/new" class="btn btn-success">Add New Filter Type</a>
+</div>
+<table class="table table-bordered">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Filter Type Name</th>
+        <th>Actions</th>
+    </tr>
+    </thead>
+    <tbody>
+    {{ range . }}
+    <tr>
+        <td>{{ .ID }}</td>
+        <td>{{ .FilterTypeName }}</td>
+        <td>
+            <a href="/filter_types/edit?id={{ .ID }}" class="btn btn-primary btn-sm">Edit</a>
+            <form action="/filter_types/delete" method="POST" style="display:inline;">
+                <input type="hidden" name="id" value="{{ .ID }}">
+                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure?');">Delete</button>
+            </form>
+        </td>
+    </tr>
+    {{ end }}
+    </tbody>
+</table>
+{{ end }}
+{{ template "layout.html" . }}

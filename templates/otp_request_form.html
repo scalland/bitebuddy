@@ -1,0 +1,28 @@
+{{ define "title" }}{{ if .ID }}Edit OTP Request{{ else }}New OTP Request{{ end }}{{ end }}
+{{ define "content" }}
+<div class="row">
+    <div class="col-md-6 offset-md-3">
+        <h2>{{ if .ID }}Edit OTP Request{{ else }}New OTP Request{{ end }}</h2>
+        <form method="POST" action="{{ if .ID }}/otp_requests/edit?id={{ .ID }}{{ else }}/otp_requests/new{{ end }}">
+            <div class="mb-3">
+                <label for="user_id" class="form-label">User ID</label>
+                <input type="text" name="user_id" class="form-control" id="user_id" value="{{ .UserID }}" required>
+            </div>
+            <div class="mb-3">
+                <label for="otp_code" class="form-label">OTP Code</label>
+                <input type="text" name="otp_code" class="form-control" id="otp_code" value="{{ .OTPCode }}" required>
+            </div>
+            <div class="mb-3">
+                <label for="requested_at" class="form-label">Requested At (YYYY-MM-DD HH:MM:SS)</label>
+                <input type="text" name="requested_at" class="form-control" id="requested_at" value="{{ if .RequestedAt.IsZero }}{{ "" }}{{ else }}{{ .RequestedAt.Format "2006-01-02 15:04:05" }}{{ end }}" required>
+            </div>
+            <div class="mb-3">
+                <label for="delivery_method" class="form-label">Delivery Method</label>
+                <input type="text" name="delivery_method" class="form-control" id="delivery_method" value="{{ .DeliveryMethod }}" required>
+            </div>
+            <button type="submit" class="btn btn-primary">{{ if .ID }}Update{{ else }}Create{{ end }}</button>
+        </form>
+    </div>
+</div>
+{{ end }}
+{{ template "layout.html" . }}

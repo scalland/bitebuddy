@@ -1,0 +1,48 @@
+{{ define "title" }}Restaurants{{ end }}
+{{ define "content" }}
+<div class="d-flex justify-content-between mb-3">
+    <h2>Restaurants</h2>
+    <a href="/restaurants/new" class="btn btn-success">Add New Restaurant</a>
+</div>
+<table class="table table-bordered">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Address</th>
+        <th>Lat</th>
+        <th>Lng</th>
+        <th>Overall Rating</th>
+        <th>Price for Two</th>
+        <th>Discount</th>
+        <th>Alcohol</th>
+        <th>Portion Size Large</th>
+        <th>Actions</th>
+    </tr>
+    </thead>
+    <tbody>
+    {{ range . }}
+    <tr>
+        <td>{{ .ID }}</td>
+        <td>{{ .Name }}</td>
+        <td>{{ .Address }}</td>
+        <td>{{ .Latitude }}</td>
+        <td>{{ .Longitude }}</td>
+        <td>{{ .OverallRating }}</td>
+        <td>{{ .PriceForTwo }}</td>
+        <td>{{ if .DiscountAvailable }}Yes{{ else }}No{{ end }}</td>
+        <td>{{ if .AlcoholAvailable }}Yes{{ else }}No{{ end }}</td>
+        <td>{{ if .PortionSizeLarge }}Yes{{ else }}No{{ end }}</td>
+        <td>
+            <a href="/restaurants/edit?id={{ .ID }}" class="btn btn-primary btn-sm">Edit</a>
+            <form action="/restaurants/delete" method="POST" style="display:inline;">
+                <input type="hidden" name="id" value="{{ .ID }}">
+                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure?');">Delete</button>
+            </form>
+        </td>
+    </tr>
+    {{ end }}
+    </tbody>
+</table>
+{{ end }}
+{{ template "layout.html" . }}

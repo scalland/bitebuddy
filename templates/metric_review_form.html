@@ -1,0 +1,24 @@
+{{ define "title" }}{{ if .ID }}Edit Metric Review{{ else }}New Metric Review{{ end }}{{ end }}
+{{ define "content" }}
+<div class="row">
+    <div class="col-md-6 offset-md-3">
+        <h2>{{ if .ID }}Edit Metric Review{{ else }}New Metric Review{{ end }}</h2>
+        <form method="POST" action="{{ if .ID }}/metric_reviews/edit?id={{ .ID }}{{ else }}/metric_reviews/new{{ end }}">
+            <div class="mb-3">
+                <label for="review_id" class="form-label">Review ID</label>
+                <input type="text" name="review_id" class="form-control" id="review_id" value="{{ .ReviewID }}" required>
+            </div>
+            <div class="mb-3">
+                <label for="metric_id" class="form-label">Metric ID</label>
+                <input type="text" name="metric_id" class="form-control" id="metric_id" value="{{ .MetricID }}" required>
+            </div>
+            <div class="mb-3">
+                <label for="score" class="form-label">Score</label>
+                <input type="text" name="score" class="form-control" id="score" value="{{ .Score }}" required>
+            </div>
+            <button type="submit" class="btn btn-primary">{{ if .ID }}Update{{ else }}Create{{ end }}</button>
+        </form>
+    </div>
+</div>
+{{ end }}
+{{ template "layout.html" . }}
