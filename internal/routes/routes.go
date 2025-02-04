@@ -6,44 +6,7 @@ import (
 	"net/http"
 )
 
-//// SetupRoutes creates and returns a mux.Router with all your endpoints.
-//func SetupRoutes() *mux.Router {
-//	router := mux.NewRouter()
-//
-//	//// Serve static assets (using Go embed; adjust if needed)
-//	//// (Assuming your static assets are embedded in internal/handlers or another package.)
-//	//router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.FS(handlers.StaticFS))))
-//
-//	// Serve static assets from the embedded FS.
-//	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.FS(assets.FS))))
-//
-//	// Dashboard
-//	router.HandleFunc("/", handlers.DashboardHandler).Methods("GET")
-//
-//	// Users endpoints
-//	router.HandleFunc("/users", handlers.UsersHandler).Methods("GET")
-//	router.HandleFunc("/users/new", handlers.UserNewHandler).Methods("GET", "POST")
-//	router.HandleFunc("/users/edit", handlers.UserEditHandler).Methods("GET", "POST")
-//	router.HandleFunc("/users/delete", handlers.UserDeleteHandler).Methods("POST")
-//
-//	// (Repeat for Restaurants, Metrics, Reviews, Metric Reviews, Filter Types, Filters, OTP Requests)
-//	// For example:
-//	router.HandleFunc("/restaurants", handlers.RestaurantsHandler).Methods("GET")
-//	router.HandleFunc("/restaurants/new", handlers.RestaurantNewHandler).Methods("GET", "POST")
-//	router.HandleFunc("/restaurants/edit", handlers.RestaurantEditHandler).Methods("GET", "POST")
-//	router.HandleFunc("/restaurants/delete", handlers.RestaurantDeleteHandler).Methods("POST")
-//
-//	// ... and so on for other endpoints.
-//
-//	return router
-//}
-
 func SetupRoutes(staticFS fs.FS, wh *handlers.WebHandlers) {
-
-	//// Serve static files from the embedded static directory.
-	//staticServer := http.FileServer(http.FS(staticFS))
-	//http.Handle("/static/", http.StripPrefix("/static/", staticServer))
-
 	// Serve static files.
 	http.Handle("/static/*", http.StripPrefix("/static/", http.FileServer(http.FS(staticFS))))
 
