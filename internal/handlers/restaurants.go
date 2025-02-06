@@ -24,8 +24,8 @@ type Restaurant struct {
 // -----------------------------------------------------------------
 // Restaurants Handlers
 
-func (o *WebHandlers) RestaurantsHandler(w http.ResponseWriter, r *http.Request) {
-	rows, err := o.db.Query("SELECT restaurant_id, name, address, latitude, longitude, overall_rating, price_for_two, image_url, discount_available, alcohol_available, portion_size_large FROM restaurants")
+func (wh *WebHandlers) RestaurantsHandler(w http.ResponseWriter, r *http.Request) {
+	rows, err := wh.db.Query("SELECT restaurant_id, name, address, latitude, longitude, overall_rating, price_for_two, image_url, discount_available, alcohol_available, portion_size_large FROM restaurants")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -41,16 +41,22 @@ func (o *WebHandlers) RestaurantsHandler(w http.ResponseWriter, r *http.Request)
 		}
 		restaurants = append(restaurants, rct)
 	}
-	tmplErr := o.tpl.ExecuteTemplate(w, "restaurants.html", restaurants)
+	tmpl, tmplErr := wh.ExecuteTemplate("restaurants", restaurants)
 	if tmplErr != nil {
 		slog.Error(fmt.Sprintf("Error executing template: restaurants.html: %s", tmplErr))
 		http.Error(w, tmplErr.Error(), http.StatusInternalServerError)
 	}
+	wh.WriteHTML(w, tmpl)
 }
 
-func (o *WebHandlers) RestaurantNewHandler(w http.ResponseWriter, r *http.Request) {
+func (wh *WebHandlers) RestaurantNewHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
-		o.tpl.ExecuteTemplate(w, "restaurant_form.html", nil)
+		tmpl, tmplErr := wh.ExecuteTemplate("restaurant_form", nil)
+		if tmplErr != nil {
+			slog.Error(fmt.Sprintf("Error executing template: restaurant_form: %s", tmplErr))
+			http.Error(w, tmplErr.Error(), http.StatusInternalServerError)
+		}
+		wh.WriteHTML(w, tmpl)
 		return
 	}
 	// POST
@@ -64,7 +70,7 @@ func (o *WebHandlers) RestaurantNewHandler(w http.ResponseWriter, r *http.Reques
 	discountAvailable := r.FormValue("discount_available") == "on"
 	alcoholAvailable := r.FormValue("alcohol_available") == "on"
 	portionSizeLarge := r.FormValue("portion_size_large") == "on"
-	stmt, err := o.db.Prepare("INSERT INTO restaurants (name, address, latitude, longitude, overall_rating, price_for_two, image_url, discount_available, alcohol_available, portion_size_large) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+	stmt, err := wh.db.Prepare("INSERT INTO restaurants (name, address, latitude, longitude, overall_rating, price_for_two, image_url, discount_available, alcohol_available, portion_size_large) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -78,18 +84,23 @@ func (o *WebHandlers) RestaurantNewHandler(w http.ResponseWriter, r *http.Reques
 	http.Redirect(w, r, "/restaurants", http.StatusSeeOther)
 }
 
-func (o *WebHandlers) RestaurantEditHandler(w http.ResponseWriter, r *http.Request) {
+func (wh *WebHandlers) RestaurantEditHandler(w http.ResponseWriter, r *http.Request) {
 	idStr := r.URL.Query().Get("id")
 	id, _ := strconv.ParseInt(idStr, 10, 64)
 	if r.Method == http.MethodGet {
 		var rct Restaurant
-		err := o.db.QueryRow("SELECT restaurant_id, name, address, latitude, longitude, overall_rating, price_for_two, image_url, discount_available, alcohol_available, portion_size_large FROM restaurants WHERE restaurant_id=?", id).
+		err := wh.db.QueryRow("SELECT restaurant_id, name, address, latitude, longitude, overall_rating, price_for_two, image_url, discount_available, alcohol_available, portion_size_large FROM restaurants WHERE restaurant_id=?", id).
 			Scan(&rct.ID, &rct.Name, &rct.Address, &rct.Latitude, &rct.Longitude, &rct.OverallRating, &rct.PriceForTwo, &rct.ImageURL, &rct.DiscountAvailable, &rct.AlcoholAvailable, &rct.PortionSizeLarge)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		o.tpl.ExecuteTemplate(w, "restaurant_form.html", rct)
+		tmpl, tmplErr := wh.ExecuteTemplate("restaurant_form", rct)
+		if tmplErr != nil {
+			slog.Error(fmt.Sprintf("Error executing template: restaurant_form.%s", tmplErr))
+			http.Error(w, tmplErr.Error(), http.StatusInternalServerError)
+		}
+		wh.WriteHTML(w, tmpl)
 		return
 	}
 	// POST update
@@ -103,7 +114,7 @@ func (o *WebHandlers) RestaurantEditHandler(w http.ResponseWriter, r *http.Reque
 	discountAvailable := r.FormValue("discount_available") == "on"
 	alcoholAvailable := r.FormValue("alcohol_available") == "on"
 	portionSizeLarge := r.FormValue("portion_size_large") == "on"
-	stmt, err := o.db.Prepare("UPDATE restaurants SET name=?, address=?, latitude=?, longitude=?, overall_rating=?, price_for_two=?, image_url=?, discount_available=?, alcohol_available=?, portion_size_large=? WHERE restaurant_id=?")
+	stmt, err := wh.db.Prepare("UPDATE restaurants SET name=?, address=?, latitude=?, longitude=?, overall_rating=?, price_for_two=?, image_url=?, discount_available=?, alcohol_available=?, portion_size_large=? WHERE restaurant_id=?")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -117,14 +128,14 @@ func (o *WebHandlers) RestaurantEditHandler(w http.ResponseWriter, r *http.Reque
 	http.Redirect(w, r, "/restaurants", http.StatusSeeOther)
 }
 
-func (o *WebHandlers) RestaurantDeleteHandler(w http.ResponseWriter, r *http.Request) {
+func (wh *WebHandlers) RestaurantDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Invalid method", http.StatusMethodNotAllowed)
 		return
 	}
 	idStr := r.FormValue("id")
 	id, _ := strconv.ParseInt(idStr, 10, 64)
-	stmt, err := o.db.Prepare("DELETE FROM restaurants WHERE restaurant_id=?")
+	stmt, err := wh.db.Prepare("DELETE FROM restaurants WHERE restaurant_id=?")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

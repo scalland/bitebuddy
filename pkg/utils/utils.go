@@ -65,3 +65,7 @@ func (u *Utils) SetTimeZone(tz string) {
 		u.TimeZone = time.Local
 	}
 }
+
+func (u *Utils) GetTimeZone() string {
+	return u.TimeZone.String()
+}

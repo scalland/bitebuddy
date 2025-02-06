@@ -11,7 +11,7 @@ var migrateCmd = &cobra.Command{
 	Use:   "migrate",
 	Short: "Run database migrations",
 	Run: func(cmd *cobra.Command, args []string) {
-		if err := db.MigrateDB(); err != nil {
+		if err := db.MigrateDB(_u); err != nil {
 			log.Fatalf("Migration failed: %v", err)
 		}
 		log.Println("Migration successful!")

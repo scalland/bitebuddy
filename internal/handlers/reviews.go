@@ -18,8 +18,8 @@ type Review struct {
 // -----------------------------------------------------------------
 // Reviews Handlers
 
-func (o *WebHandlers) ReviewsHandler(w http.ResponseWriter, r *http.Request) {
-	rows, err := o.db.Query("SELECT review_id, restaurant_id, user_id, overall_score, review_text, created_at FROM reviews")
+func (wh *WebHandlers) ReviewsHandler(w http.ResponseWriter, r *http.Request) {
+	rows, err := wh.db.Query("SELECT review_id, restaurant_id, user_id, overall_score, review_text, created_at FROM reviews")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -35,12 +35,20 @@ func (o *WebHandlers) ReviewsHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		reviews = append(reviews, rev)
 	}
-	o.tpl.ExecuteTemplate(w, "reviews.html", reviews)
+	tmpl, tmplErr := wh.ExecuteTemplate("reviews", reviews)
+	if tmplErr != nil {
+		http.Error(w, tmplErr.Error(), http.StatusInternalServerError)
+	}
+	wh.WriteHTML(w, tmpl)
 }
 
-func (o *WebHandlers) ReviewNewHandler(w http.ResponseWriter, r *http.Request) {
+func (wh *WebHandlers) ReviewNewHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
-		o.tpl.ExecuteTemplate(w, "review_form.html", nil)
+		tmpl, tmplErr := wh.ExecuteTemplate("review_form", nil)
+		if tmplErr != nil {
+			http.Error(w, tmplErr.Error(), http.StatusInternalServerError)
+		}
+		wh.WriteHTML(w, tmpl)
 		return
 	}
 	restaurantID, _ := strconv.ParseInt(r.FormValue("restaurant_id"), 10, 64)
@@ -48,7 +56,7 @@ func (o *WebHandlers) ReviewNewHandler(w http.ResponseWriter, r *http.Request) {
 	overallScore, _ := strconv.ParseFloat(r.FormValue("overall_score"), 64)
 	reviewText := r.FormValue("review_text")
 	now := time.Now()
-	stmt, err := o.db.Prepare("INSERT INTO reviews (restaurant_id, user_id, overall_score, review_text, created_at) VALUES (?, ?, ?, ?, ?)")
+	stmt, err := wh.db.Prepare("INSERT INTO reviews (restaurant_id, user_id, overall_score, review_text, created_at) VALUES (?, ?, ?, ?, ?)")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -62,25 +70,29 @@ func (o *WebHandlers) ReviewNewHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/reviews", http.StatusSeeOther)
 }
 
-func (o *WebHandlers) ReviewEditHandler(w http.ResponseWriter, r *http.Request) {
+func (wh *WebHandlers) ReviewEditHandler(w http.ResponseWriter, r *http.Request) {
 	idStr := r.URL.Query().Get("id")
 	id, _ := strconv.ParseInt(idStr, 10, 64)
 	if r.Method == http.MethodGet {
 		var rev Review
-		err := o.db.QueryRow("SELECT review_id, restaurant_id, user_id, overall_score, review_text, created_at FROM reviews WHERE review_id=?", id).
+		err := wh.db.QueryRow("SELECT review_id, restaurant_id, user_id, overall_score, review_text, created_at FROM reviews WHERE review_id=?", id).
 			Scan(&rev.ID, &rev.RestaurantID, &rev.UserID, &rev.OverallScore, &rev.ReviewText, &rev.CreatedAt)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		o.tpl.ExecuteTemplate(w, "review_form.html", rev)
+		tmpl, tmplErr := wh.ExecuteTemplate("review_form", rev)
+		if tmplErr != nil {
+			http.Error(w, tmplErr.Error(), http.StatusInternalServerError)
+		}
+		wh.WriteHTML(w, tmpl)
 		return
 	}
 	restaurantID, _ := strconv.ParseInt(r.FormValue("restaurant_id"), 10, 64)
 	userID, _ := strconv.ParseInt(r.FormValue("user_id"), 10, 64)
 	overallScore, _ := strconv.ParseFloat(r.FormValue("overall_score"), 64)
 	reviewText := r.FormValue("review_text")
-	stmt, err := o.db.Prepare("UPDATE reviews SET restaurant_id=?, user_id=?, overall_score=?, review_text=? WHERE review_id=?")
+	stmt, err := wh.db.Prepare("UPDATE reviews SET restaurant_id=?, user_id=?, overall_score=?, review_text=? WHERE review_id=?")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -94,14 +106,14 @@ func (o *WebHandlers) ReviewEditHandler(w http.ResponseWriter, r *http.Request) 
 	http.Redirect(w, r, "/reviews", http.StatusSeeOther)
 }
 
-func (o *WebHandlers) ReviewDeleteHandler(w http.ResponseWriter, r *http.Request) {
+func (wh *WebHandlers) ReviewDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Invalid method", http.StatusMethodNotAllowed)
 		return
 	}
 	idStr := r.FormValue("id")
 	id, _ := strconv.ParseInt(idStr, 10, 64)
-	stmt, err := o.db.Prepare("DELETE FROM reviews WHERE review_id=?")
+	stmt, err := wh.db.Prepare("DELETE FROM reviews WHERE review_id=?")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

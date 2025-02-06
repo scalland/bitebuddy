@@ -13,8 +13,8 @@ type FilterType struct {
 // -----------------------------------------------------------------
 // Filter Types Handlers
 
-func (o *WebHandlers) FilterTypesHandler(w http.ResponseWriter, r *http.Request) {
-	rows, err := o.db.Query("SELECT filter_type_id, filter_type_name FROM filter_types")
+func (wh *WebHandlers) FilterTypesHandler(w http.ResponseWriter, r *http.Request) {
+	rows, err := wh.db.Query("SELECT filter_type_id, filter_type_name FROM filter_types")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -30,16 +30,24 @@ func (o *WebHandlers) FilterTypesHandler(w http.ResponseWriter, r *http.Request)
 		}
 		fTypes = append(fTypes, ft)
 	}
-	o.tpl.ExecuteTemplate(w, "filter_types.html", fTypes)
+	tmpl, tmplErr := wh.ExecuteTemplate("filter_types", fTypes)
+	if tmplErr != nil {
+		http.Error(w, tmplErr.Error(), http.StatusInternalServerError)
+	}
+	wh.WriteHTML(w, tmpl)
 }
 
-func (o *WebHandlers) FilterTypeNewHandler(w http.ResponseWriter, r *http.Request) {
+func (wh *WebHandlers) FilterTypeNewHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
-		o.tpl.ExecuteTemplate(w, "filter_type_form.html", nil)
+		tmpl, tmplErr := wh.ExecuteTemplate("filter_type_form", nil)
+		if tmplErr != nil {
+			http.Error(w, tmplErr.Error(), http.StatusInternalServerError)
+		}
+		wh.WriteHTML(w, tmpl)
 		return
 	}
 	filterTypeName := r.FormValue("filter_type_name")
-	stmt, err := o.db.Prepare("INSERT INTO filter_types (filter_type_name) VALUES (?)")
+	stmt, err := wh.db.Prepare("INSERT INTO filter_types (filter_type_name) VALUES (?)")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -53,22 +61,26 @@ func (o *WebHandlers) FilterTypeNewHandler(w http.ResponseWriter, r *http.Reques
 	http.Redirect(w, r, "/filter_types", http.StatusSeeOther)
 }
 
-func (o *WebHandlers) FilterTypeEditHandler(w http.ResponseWriter, r *http.Request) {
+func (wh *WebHandlers) FilterTypeEditHandler(w http.ResponseWriter, r *http.Request) {
 	idStr := r.URL.Query().Get("id")
 	id, _ := strconv.ParseInt(idStr, 10, 64)
 	if r.Method == http.MethodGet {
 		var ft FilterType
-		err := o.db.QueryRow("SELECT filter_type_id, filter_type_name FROM filter_types WHERE filter_type_id=?", id).
+		err := wh.db.QueryRow("SELECT filter_type_id, filter_type_name FROM filter_types WHERE filter_type_id=?", id).
 			Scan(&ft.ID, &ft.FilterTypeName)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		o.tpl.ExecuteTemplate(w, "filter_type_form.html", ft)
+		tmpl, tmplErr := wh.ExecuteTemplate("filter_type_form", ft)
+		if tmplErr != nil {
+			http.Error(w, tmplErr.Error(), http.StatusInternalServerError)
+		}
+		wh.WriteHTML(w, tmpl)
 		return
 	}
 	filterTypeName := r.FormValue("filter_type_name")
-	stmt, err := o.db.Prepare("UPDATE filter_types SET filter_type_name=? WHERE filter_type_id=?")
+	stmt, err := wh.db.Prepare("UPDATE filter_types SET filter_type_name=? WHERE filter_type_id=?")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -82,14 +94,14 @@ func (o *WebHandlers) FilterTypeEditHandler(w http.ResponseWriter, r *http.Reque
 	http.Redirect(w, r, "/filter_types", http.StatusSeeOther)
 }
 
-func (o *WebHandlers) FilterTypeDeleteHandler(w http.ResponseWriter, r *http.Request) {
+func (wh *WebHandlers) FilterTypeDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Invalid method", http.StatusMethodNotAllowed)
 		return
 	}
 	idStr := r.FormValue("id")
 	id, _ := strconv.ParseInt(idStr, 10, 64)
-	stmt, err := o.db.Prepare("DELETE FROM filter_types WHERE filter_type_id=?")
+	stmt, err := wh.db.Prepare("DELETE FROM filter_types WHERE filter_type_id=?")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

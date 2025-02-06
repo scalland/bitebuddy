@@ -1,8 +1,8 @@
 package db
 
 import (
-	"database/sql"
 	"fmt"
+	"github.com/scalland/bitebuddy/pkg/utils"
 	"log"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -129,11 +129,12 @@ var migrationQueries = []string{
 	) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;`,
 }
 
-func MigrateDB() error {
-	db, err := sql.Open("mysql", DSN)
-	if err != nil {
-		return fmt.Errorf("error connecting to database: %w", err)
+func MigrateDB(u *utils.Utils) error {
+	db, dbErr := u.ConnectDB()
+	if dbErr != nil {
+		return fmt.Errorf("error connecting to database: %s", dbErr.Error())
 	}
+
 	defer db.Close()
 
 	for _, query := range migrationQueries {

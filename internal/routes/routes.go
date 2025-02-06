@@ -1,14 +1,21 @@
 package routes
 
 import (
+	"fmt"
 	"github.com/scalland/bitebuddy/internal/handlers"
 	"io/fs"
 	"net/http"
 )
 
-func SetupRoutes(staticFS fs.FS, wh *handlers.WebHandlers) {
+func SetupRoutes(wh *handlers.WebHandlers) {
+
+	staticFilesDirPath := fmt.Sprintf("template/%s/static", wh.GetThemeName())
+	staticFilesDirFS, staticFilesDirFSErr := fs.Sub(wh.GetTemplateFS(), staticFilesDirPath)
+	if staticFilesDirFSErr != nil {
+		wh.Log.Errorf("Error getting a sub-directory as a filesystem from webDir: %s", staticFilesDirFSErr.Error())
+	}
 	// Serve static files.
-	http.Handle("/static/*", http.StripPrefix("/static/", http.FileServer(http.FS(staticFS))))
+	http.Handle("/static/*", http.StripPrefix("/static/", http.FileServer(http.FS(staticFilesDirFS))))
 
 	// Define routes:
 	http.HandleFunc("/", wh.DashboardHandler)

@@ -15,6 +15,12 @@ func (l *Logger) NewJSONLogger() *slog.Logger {
 	return l.l
 }
 
+func New() *Logger {
+	return &Logger{
+		l: slog.New(slog.NewJSONHandler(os.Stdout, nil)),
+	}
+}
+
 func (l *Logger) Debugf(format string, v ...interface{}) {
 	l.l.Debug(fmt.Sprintf(format, v...))
 }

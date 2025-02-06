@@ -18,8 +18,8 @@ type Metric struct {
 // -----------------------------------------------------------------
 // Metrics Handlers
 
-func (o *WebHandlers) MetricsHandler(w http.ResponseWriter, r *http.Request) {
-	rows, err := o.db.Query("SELECT metric_id, metric_name, parent_metric_id, is_sub_metric, display_type_id, metric_type_id FROM metrics")
+func (wh *WebHandlers) MetricsHandler(w http.ResponseWriter, r *http.Request) {
+	rows, err := wh.db.Query("SELECT metric_id, metric_name, parent_metric_id, is_sub_metric, display_type_id, metric_type_id FROM metrics")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -35,12 +35,20 @@ func (o *WebHandlers) MetricsHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		metrics = append(metrics, m)
 	}
-	o.tpl.ExecuteTemplate(w, "metrics.html", metrics)
+	tmpl, tmplErr := wh.ExecuteTemplate("metrics", metrics)
+	if tmplErr != nil {
+		http.Error(w, tmplErr.Error(), http.StatusInternalServerError)
+	}
+	wh.WriteHTML(w, tmpl)
 }
 
-func (o *WebHandlers) MetricNewHandler(w http.ResponseWriter, r *http.Request) {
+func (wh *WebHandlers) MetricNewHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
-		o.tpl.ExecuteTemplate(w, "metric_form.html", nil)
+		tmpl, tmplErr := wh.ExecuteTemplate("metric_form.html", nil)
+		if tmplErr != nil {
+			http.Error(w, tmplErr.Error(), http.StatusInternalServerError)
+		}
+		wh.WriteHTML(w, tmpl)
 		return
 	}
 	metricName := r.FormValue("metric_name")
@@ -53,7 +61,7 @@ func (o *WebHandlers) MetricNewHandler(w http.ResponseWriter, r *http.Request) {
 	isSubMetric := r.FormValue("is_sub_metric") == "on"
 	displayTypeID, _ := strconv.Atoi(r.FormValue("display_type_id"))
 	metricTypeID, _ := strconv.Atoi(r.FormValue("metric_type_id"))
-	stmt, err := o.db.Prepare("INSERT INTO metrics (metric_name, parent_metric_id, is_sub_metric, display_type_id, metric_type_id) VALUES (?, ?, ?, ?, ?)")
+	stmt, err := wh.db.Prepare("INSERT INTO metrics (metric_name, parent_metric_id, is_sub_metric, display_type_id, metric_type_id) VALUES (?, ?, ?, ?, ?)")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -67,18 +75,22 @@ func (o *WebHandlers) MetricNewHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/metrics", http.StatusSeeOther)
 }
 
-func (o *WebHandlers) MetricEditHandler(w http.ResponseWriter, r *http.Request) {
+func (wh *WebHandlers) MetricEditHandler(w http.ResponseWriter, r *http.Request) {
 	idStr := r.URL.Query().Get("id")
 	id, _ := strconv.ParseInt(idStr, 10, 64)
 	if r.Method == http.MethodGet {
 		var m Metric
-		err := o.db.QueryRow("SELECT metric_id, metric_name, parent_metric_id, is_sub_metric, display_type_id, metric_type_id FROM metrics WHERE metric_id=?", id).
+		err := wh.db.QueryRow("SELECT metric_id, metric_name, parent_metric_id, is_sub_metric, display_type_id, metric_type_id FROM metrics WHERE metric_id=?", id).
 			Scan(&m.ID, &m.MetricName, &m.ParentMetricID, &m.IsSubMetric, &m.DisplayTypeID, &m.MetricTypeID)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		o.tpl.ExecuteTemplate(w, "metric_form.html", m)
+		tmpl, tmplErr := wh.ExecuteTemplate("metric_form", m)
+		if tmplErr != nil {
+			http.Error(w, tmplErr.Error(), http.StatusInternalServerError)
+		}
+		wh.WriteHTML(w, tmpl)
 		return
 	}
 	metricName := r.FormValue("metric_name")
@@ -91,7 +103,7 @@ func (o *WebHandlers) MetricEditHandler(w http.ResponseWriter, r *http.Request) 
 	isSubMetric := r.FormValue("is_sub_metric") == "on"
 	displayTypeID, _ := strconv.Atoi(r.FormValue("display_type_id"))
 	metricTypeID, _ := strconv.Atoi(r.FormValue("metric_type_id"))
-	stmt, err := o.db.Prepare("UPDATE metrics SET metric_name=?, parent_metric_id=?, is_sub_metric=?, display_type_id=?, metric_type_id=? WHERE metric_id=?")
+	stmt, err := wh.db.Prepare("UPDATE metrics SET metric_name=?, parent_metric_id=?, is_sub_metric=?, display_type_id=?, metric_type_id=? WHERE metric_id=?")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -105,14 +117,14 @@ func (o *WebHandlers) MetricEditHandler(w http.ResponseWriter, r *http.Request) 
 	http.Redirect(w, r, "/metrics", http.StatusSeeOther)
 }
 
-func (o *WebHandlers) MetricDeleteHandler(w http.ResponseWriter, r *http.Request) {
+func (wh *WebHandlers) MetricDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Invalid method", http.StatusMethodNotAllowed)
 		return
 	}
 	idStr := r.FormValue("id")
 	id, _ := strconv.ParseInt(idStr, 10, 64)
-	stmt, err := o.db.Prepare("DELETE FROM metrics WHERE metric_id=?")
+	stmt, err := wh.db.Prepare("DELETE FROM metrics WHERE metric_id=?")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

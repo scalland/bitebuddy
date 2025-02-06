@@ -1,13 +1,17 @@
 package handlers
 
-import "net/http"
+import (
+	"net/http"
+)
 
 // -----------------------------------------------------------------
 // Dashboard handler
 
-func (o *WebHandlers) DashboardHandler(w http.ResponseWriter, r *http.Request) {
-	err := o.tpl.ExecuteTemplate(w, "dashboard.html", nil)
+func (wh *WebHandlers) DashboardHandler(w http.ResponseWriter, r *http.Request) {
+	data, err := wh.ExecuteTemplate("dashboard", nil)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
+	wh.WriteHTML(w, data)
 }
