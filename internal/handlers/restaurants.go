@@ -46,7 +46,7 @@ func (wh *WebHandlers) RestaurantsHandler(w http.ResponseWriter, r *http.Request
 		slog.Error(fmt.Sprintf("Error executing template: restaurants.html: %s", tmplErr))
 		http.Error(w, tmplErr.Error(), http.StatusInternalServerError)
 	}
-	wh.WriteHTML(w, tmpl)
+	wh.WriteHTML(w, tmpl, http.StatusOK)
 }
 
 func (wh *WebHandlers) RestaurantNewHandler(w http.ResponseWriter, r *http.Request) {
@@ -56,7 +56,7 @@ func (wh *WebHandlers) RestaurantNewHandler(w http.ResponseWriter, r *http.Reque
 			slog.Error(fmt.Sprintf("Error executing template: restaurant_form: %s", tmplErr))
 			http.Error(w, tmplErr.Error(), http.StatusInternalServerError)
 		}
-		wh.WriteHTML(w, tmpl)
+		wh.WriteHTML(w, tmpl, http.StatusOK)
 		return
 	}
 	// POST
@@ -100,7 +100,7 @@ func (wh *WebHandlers) RestaurantEditHandler(w http.ResponseWriter, r *http.Requ
 			slog.Error(fmt.Sprintf("Error executing template: restaurant_form.%s", tmplErr))
 			http.Error(w, tmplErr.Error(), http.StatusInternalServerError)
 		}
-		wh.WriteHTML(w, tmpl)
+		wh.WriteHTML(w, tmpl, http.StatusOK)
 		return
 	}
 	// POST update

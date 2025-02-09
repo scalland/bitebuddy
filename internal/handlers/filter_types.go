@@ -34,7 +34,7 @@ func (wh *WebHandlers) FilterTypesHandler(w http.ResponseWriter, r *http.Request
 	if tmplErr != nil {
 		http.Error(w, tmplErr.Error(), http.StatusInternalServerError)
 	}
-	wh.WriteHTML(w, tmpl)
+	wh.WriteHTML(w, tmpl, http.StatusOK)
 }
 
 func (wh *WebHandlers) FilterTypeNewHandler(w http.ResponseWriter, r *http.Request) {
@@ -43,7 +43,7 @@ func (wh *WebHandlers) FilterTypeNewHandler(w http.ResponseWriter, r *http.Reque
 		if tmplErr != nil {
 			http.Error(w, tmplErr.Error(), http.StatusInternalServerError)
 		}
-		wh.WriteHTML(w, tmpl)
+		wh.WriteHTML(w, tmpl, http.StatusOK)
 		return
 	}
 	filterTypeName := r.FormValue("filter_type_name")
@@ -76,7 +76,7 @@ func (wh *WebHandlers) FilterTypeEditHandler(w http.ResponseWriter, r *http.Requ
 		if tmplErr != nil {
 			http.Error(w, tmplErr.Error(), http.StatusInternalServerError)
 		}
-		wh.WriteHTML(w, tmpl)
+		wh.WriteHTML(w, tmpl, http.StatusOK)
 		return
 	}
 	filterTypeName := r.FormValue("filter_type_name")

@@ -1,30 +1,32 @@
-{{ define "title" }}{{ if .ID }}Edit User{{ else }}New User{{ end }}{{ end }}
+{{ define "title" }}{{ if .U.ID }}Edit User{{ else }}New User{{ end }}{{ end }}
 {{ define "content" }}
 <div class="row">
     <div class="col-md-6 offset-md-3">
-        <h2>{{ if .ID }}Edit User{{ else }}New User{{ end }}</h2>
-        <form method="POST" action="{{ if .ID }}/users/edit?id={{ .ID }}{{ else }}/users/new{{ end }}">
+        <h2>{{ if .U.ID }}Edit User{{ else }}New User{{ end }}</h2>
+        <form method="POST" action="{{ if .U.ID }}/users/edit?id={{ .U.ID }}{{ else }}/users/new{{ end }}">
             <div class="mb-3">
                 <label for="email" class="form-label">Email</label>
-                <input type="email" name="email" class="form-control" id="email" value="{{ .Email }}" required>
+                <input type="email" name="email" class="form-control" id="email" value="{{ .U.Email }}" required>
             </div>
             <div class="mb-3">
                 <label for="mobile" class="form-label">Mobile Number</label>
-                <input type="text" name="mobile" class="form-control" id="mobile" value="{{ .MobileNumber }}" required>
+                <input type="text" name="mobile" class="form-control" id="mobile" value="{{ .U.MobileNumber }}" required>
             </div>
             <div class="mb-3">
                 <label for="user_type" class="form-label">User Type</label>
                 <select name="user_type" class="form-select" id="user_type">
-                    <option value="1" {{ if eq .UserTypeID 1 }}selected{{ end }}>Admin</option>
-                    <option value="2" {{ if eq .UserTypeID 2 }}selected{{ end }}>Restaurant Owner</option>
-                    <option value="3" {{ if eq .UserTypeID 3 }}selected{{ end }}>Customer</option>
+                    <option value="">Select User Type</option>  {{ range .UserTypesData }}
+                    <option value="{{ .UserTypeID }}" {{ if eq $.U.UserTypeID .UserTypeID }}selected{{ end }}>
+                        {{ .UserTypeName }}
+                    </option>
+                    {{ end }}
                 </select>
             </div>
             <div class="mb-3 form-check">
-                <input type="checkbox" name="is_active" class="form-check-input" id="is_active" {{ if .IsActive }}checked{{ end }}>
+                <input type="checkbox" name="is_active" class="form-check-input" id="is_active" {{ if .U.IsActive }}checked{{ end }}>
                 <label for="is_active" class="form-check-label">Active</label>
             </div>
-            <button type="submit" class="btn btn-primary">{{ if .ID }}Update{{ else }}Create{{ end }}</button>
+            <button type="submit" class="btn btn-primary">{{ if .U.ID }}Update{{ else }}Create{{ end }}</button>
         </form>
     </div>
 </div>

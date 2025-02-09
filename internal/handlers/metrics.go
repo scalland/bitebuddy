@@ -39,7 +39,7 @@ func (wh *WebHandlers) MetricsHandler(w http.ResponseWriter, r *http.Request) {
 	if tmplErr != nil {
 		http.Error(w, tmplErr.Error(), http.StatusInternalServerError)
 	}
-	wh.WriteHTML(w, tmpl)
+	wh.WriteHTML(w, tmpl, http.StatusOK)
 }
 
 func (wh *WebHandlers) MetricNewHandler(w http.ResponseWriter, r *http.Request) {
@@ -48,7 +48,7 @@ func (wh *WebHandlers) MetricNewHandler(w http.ResponseWriter, r *http.Request) 
 		if tmplErr != nil {
 			http.Error(w, tmplErr.Error(), http.StatusInternalServerError)
 		}
-		wh.WriteHTML(w, tmpl)
+		wh.WriteHTML(w, tmpl, http.StatusOK)
 		return
 	}
 	metricName := r.FormValue("metric_name")
@@ -90,7 +90,7 @@ func (wh *WebHandlers) MetricEditHandler(w http.ResponseWriter, r *http.Request)
 		if tmplErr != nil {
 			http.Error(w, tmplErr.Error(), http.StatusInternalServerError)
 		}
-		wh.WriteHTML(w, tmpl)
+		wh.WriteHTML(w, tmpl, http.StatusOK)
 		return
 	}
 	metricName := r.FormValue("metric_name")

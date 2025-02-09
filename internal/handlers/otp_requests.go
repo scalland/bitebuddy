@@ -42,7 +42,7 @@ func (wh *WebHandlers) OtpRequestsHandler(w http.ResponseWriter, r *http.Request
 		slog.Error(fmt.Sprintf("error executing template: %s", tmplErr.Error()))
 		http.Error(w, tmplErr.Error(), http.StatusInternalServerError)
 	}
-	wh.WriteHTML(w, tmpl)
+	wh.WriteHTML(w, tmpl, http.StatusOK)
 }
 
 func (wh *WebHandlers) OtpRequestNewHandler(w http.ResponseWriter, r *http.Request) {
@@ -52,7 +52,7 @@ func (wh *WebHandlers) OtpRequestNewHandler(w http.ResponseWriter, r *http.Reque
 			slog.Error(fmt.Sprintf("error executing template: %s", tmplErr.Error()))
 			http.Error(w, tmplErr.Error(), http.StatusInternalServerError)
 		}
-		wh.WriteHTML(w, tmpl)
+		wh.WriteHTML(w, tmpl, http.StatusOK)
 		return
 	}
 	userID, _ := strconv.ParseInt(r.FormValue("user_id"), 10, 64)
@@ -90,7 +90,7 @@ func (wh *WebHandlers) OtpRequestEditHandler(w http.ResponseWriter, r *http.Requ
 			slog.Error(fmt.Sprintf("error executing template: %s", tmplErr.Error()))
 			http.Error(w, tmplErr.Error(), http.StatusInternalServerError)
 		}
-		wh.WriteHTML(w, tmpl)
+		wh.WriteHTML(w, tmpl, http.StatusOK)
 		return
 	}
 	userID, _ := strconv.ParseInt(r.FormValue("user_id"), 10, 64)

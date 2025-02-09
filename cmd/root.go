@@ -37,4 +37,7 @@ func init() {
 
 func initializer() {
 	_u = utils.NewUtils()
+	env := "local"
+	appName := utils.APP_NAME
+	_u.ViperReadConfig(env, appName, "app.yml")
 }

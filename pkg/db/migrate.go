@@ -8,9 +8,6 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
-// DSN should be updated per your configuration.
-const DSN = "user:password@tcp(127.0.0.1:3306)/foodapp?parseTime=true"
-
 var migrationQueries = []string{
 	// User types master table.
 	`CREATE TABLE IF NOT EXISTS user_types (
@@ -121,11 +118,12 @@ var migrationQueries = []string{
 	`CREATE TABLE IF NOT EXISTS otp_requests (
 		otp_request_id INT AUTO_INCREMENT PRIMARY KEY,
 		user_id INT NOT NULL,
-		otp_code VARCHAR(10) NOT NULL,
+		otp_code VARCHAR(24) NOT NULL,
 		requested_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 		delivery_method VARCHAR(10),
 		valid_till INT UNSIGNED GENERATED ALWAYS AS (UNIX_TIMESTAMP(requested_at)+33) VIRTUAL,
-		FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+		session_id VARCHAR(1024) NOT NULL,
+		UNIQUE KEY(user_id,otp_code,session_id)
 	) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;`,
 }
 

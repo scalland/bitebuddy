@@ -36,7 +36,7 @@ func (wh *WebHandlers) MetricReviewsHandler(w http.ResponseWriter, r *http.Reque
 	if tmplErr != nil {
 		http.Error(w, tmplErr.Error(), http.StatusInternalServerError)
 	}
-	wh.WriteHTML(w, tmpl)
+	wh.WriteHTML(w, tmpl, http.StatusOK)
 }
 
 func (wh *WebHandlers) MetricReviewNewHandler(w http.ResponseWriter, r *http.Request) {
@@ -45,7 +45,7 @@ func (wh *WebHandlers) MetricReviewNewHandler(w http.ResponseWriter, r *http.Req
 		if tmplErr != nil {
 			http.Error(w, tmplErr.Error(), http.StatusInternalServerError)
 		}
-		wh.WriteHTML(w, tmpl)
+		wh.WriteHTML(w, tmpl, http.StatusOK)
 		return
 	}
 	reviewID, _ := strconv.ParseInt(r.FormValue("review_id"), 10, 64)
@@ -80,7 +80,7 @@ func (wh *WebHandlers) MetricReviewEditHandler(w http.ResponseWriter, r *http.Re
 		if tmplErr != nil {
 			http.Error(w, tmplErr.Error(), http.StatusInternalServerError)
 		}
-		wh.WriteHTML(w, tmpl)
+		wh.WriteHTML(w, tmpl, http.StatusOK)
 		return
 	}
 	reviewID, _ := strconv.ParseInt(r.FormValue("review_id"), 10, 64)

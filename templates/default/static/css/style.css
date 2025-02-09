@@ -13,3 +13,12 @@ table {
         font-size: 0.9rem;
     }
 }
+
+/*nav a:hover {*/
+/*    background: #fff;*/
+/*}*/
+
+nav a:hover {
+    color: rgba(13,110,253,1);          /* Set text color to a dark shade (Bootstrap's dark color) */
+    outline-color: rgba(13,110,253,1);
+}

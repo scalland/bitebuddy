@@ -1,0 +1,31 @@
+{{ define "title" }}Login to BiteBuddy{{ end }}
+{{ define "content" }}
+<div class="container my-4">
+    <h2 class="mb-3">Login</h2>
+    <form method="POST" action="/login">
+        <div class="mb-3">
+            <label for="email" class="form-label">Email Address</label>
+            {{ if .UserEmail }}
+            <input type="email" name="email" id="email" class="form-control" value="{{ .UserEmail }}" required>
+        </div>
+        <div class="mb-3">
+            <label for="otp" class="form-label">OTP</label>
+            /<input type="text" name="otp" id="otp" class="form-control" required>
+        </div>
+        <button type="button" id="otpResendButton" class="btn btn-secondary" disabled="disabled">Resend OTP</div>
+        {{ else }}
+            <input type="email" name="email" id="email" class="form-control" required>
+        </div>
+        {{ end }}
+        <!-- Uncomment below if you add password support -->
+        <!--
+        <div class="mb-3">
+          <label for="password" class="form-label">Password</label>
+          <input type="password" name="password" id="password" class="form-control" required>
+        </div>
+        -->
+        <button type="submit" class="btn btn-primary">Login</button>
+    </form>
+</div>
+{{ end }}
+{{ template "layout.html" . }}

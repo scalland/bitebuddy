@@ -39,7 +39,7 @@ func (wh *WebHandlers) ReviewsHandler(w http.ResponseWriter, r *http.Request) {
 	if tmplErr != nil {
 		http.Error(w, tmplErr.Error(), http.StatusInternalServerError)
 	}
-	wh.WriteHTML(w, tmpl)
+	wh.WriteHTML(w, tmpl, http.StatusOK)
 }
 
 func (wh *WebHandlers) ReviewNewHandler(w http.ResponseWriter, r *http.Request) {
@@ -48,7 +48,7 @@ func (wh *WebHandlers) ReviewNewHandler(w http.ResponseWriter, r *http.Request) 
 		if tmplErr != nil {
 			http.Error(w, tmplErr.Error(), http.StatusInternalServerError)
 		}
-		wh.WriteHTML(w, tmpl)
+		wh.WriteHTML(w, tmpl, http.StatusOK)
 		return
 	}
 	restaurantID, _ := strconv.ParseInt(r.FormValue("restaurant_id"), 10, 64)
@@ -85,7 +85,7 @@ func (wh *WebHandlers) ReviewEditHandler(w http.ResponseWriter, r *http.Request)
 		if tmplErr != nil {
 			http.Error(w, tmplErr.Error(), http.StatusInternalServerError)
 		}
-		wh.WriteHTML(w, tmpl)
+		wh.WriteHTML(w, tmpl, http.StatusOK)
 		return
 	}
 	restaurantID, _ := strconv.ParseInt(r.FormValue("restaurant_id"), 10, 64)

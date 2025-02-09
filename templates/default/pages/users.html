@@ -10,7 +10,7 @@
         <th>ID</th>
         <th>Email</th>
         <th>Mobile</th>
-        <th>User Type</th>
+        <th>[User Type ID] User Type Name</th>
         <th>Active</th>
         <th>Created At</th>
         <th>Last Login</th>
@@ -23,7 +23,7 @@
         <td>{{ .ID }}</td>
         <td>{{ .Email }}</td>
         <td>{{ .MobileNumber }}</td>
-        <td>{{ .UserTypeID }}</td>
+        <td>[{{ .UserTypeID }}] {{ .UserTypeName }}</td>
         <td>{{ if .IsActive }}Yes{{ else }}No{{ end }}</td>
         <td>{{ .CreatedAt.Format "2006-01-02 15:04:05" }}</td>
         <td>{{ .LastLogin.Format "2006-01-02 15:04:05" }}</td>

@@ -6,3 +6,13 @@ db_host: "localhost"
 db_port: 3306
 db_database: "bitebuddy"
 theme: "default"
+otp_length: 24
+smtp_server: "smtp.example.com"
+smtp_port: 25
+smtp_user: "user@example.com"
+smtp_pass: "you-smtp-password-here"
+session_store: "filesystem" # valid stores - cookie, filesystem as per Gorilla Sessions. Cookie store does not generate session IDs. For another store, use one from https://github.com/gorilla/sessions
+session_store_path: "storage/"
+session_name: "__bitebuddy_session__"
+session_secret: "your-32-character-super-secret-session-key" # It is recommended to use an authentication key with 32 or 64 bytes. The encryption key, if set, must be either 16, 24, or 32 bytes to select AES-128, AES-192, or AES-256 modes.
+admin_user_type_id: 1

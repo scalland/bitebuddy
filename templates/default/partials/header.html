@@ -2,15 +2,22 @@
     <div class="container">
         <h1>FoodApp Dashboard</h1>
         <nav>
-            <a href="/static" class="text-white me-3">Dashboard</a>
-            <a href="/users" class="text-white me-3">Users</a>
-            <a href="/restaurants" class="text-white me-3">Restaurants</a>
-            <a href="/metrics" class="text-white me-3">Metrics</a>
-            <a href="/reviews" class="text-white me-3">Reviews</a>
-            <a href="/metric_reviews" class="text-white me-3">Metric Reviews</a>
-            <a href="/filter_types" class="text-white me-3">Filter Types</a>
-            <a href="/filters" class="text-white me-3">Filters</a>
-            <a href="/otp_requests" class="text-white">OTP Requests</a>
+            {{ if .IsLoggedIn }}
+            <a href="/" class="text-white me-3 btn btn-outline-dark btn-sm">Dashboard</a>
+            <a href="/user_types" class="text-white me-3 btn btn-outline-dark btn-sm">User Types</a>
+            <a href="/users" class="text-white me-3 btn btn-outline-dark btn-sm">Users</a>
+            <a href="/restaurants" class="text-white me-3 btn btn-outline-dark btn-sm">Restaurants</a>
+            <a href="/metrics" class="text-white me-3 btn btn-outline-dark btn-sm">Metrics</a>
+            <a href="/reviews" class="text-white me-3 btn btn-outline-dark btn-sm">Reviews</a>
+            <a href="/metric_reviews" class="text-white me-3 btn btn-outline-dark btn-sm">Metric Reviews</a>
+            <a href="/filter_types" class="text-white me-3 btn btn-outline-dark btn-sm">Filter Types</a>
+            <a href="/filters" class="text-white me-3 btn btn-outline-dark btn-sm">Filters</a>
+            <a href="/otp_requests" class="text-white btn btn-outline-dark btn-sm">OTP Requests</a>
+            <a href="/logout" class="text-white btn btn-outline-dark btn-sm">Logout</a>
+            {{ else }}
+            <!-- Optionally, display a login link if the user is not logged in -->
+            <!-- <a href="/login" class="text-white btn btn-outline-dark btn-sm">Login</a> -->
+            {{ end }}
         </nav>
     </div>
 </header>
