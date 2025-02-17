@@ -1,8 +1,10 @@
 package db
 
 import (
+	"database/sql"
 	"fmt"
 	"github.com/scalland/bitebuddy/pkg/utils"
+	"github.com/spf13/viper"
 	"log"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -127,18 +129,40 @@ var migrationQueries = []string{
 	) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;`,
 }
 
-func MigrateDB(u *utils.Utils) error {
+func MigrateDB(u *utils.Utils, createDB bool) error {
+	if createDB {
+		log.Printf("User requested to create the database as well. Trying that now...")
+		db, dbErr := u.ConnectSansDB()
+		if dbErr != nil {
+			return fmt.Errorf("error connecting to database: %s", dbErr.Error())
+		}
+		_, err := db.Exec(fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %s", viper.GetString("db_database")))
+		if err != nil {
+			return fmt.Errorf("migration error: %s", err.Error())
+		}
+		dbErr = db.Close()
+		if dbErr != nil {
+			log.Printf("error closing DB connection after creating database: %s", dbErr.Error())
+			log.Printf("ignoring last error and proceeding further...")
+		}
+	}
+
 	db, dbErr := u.ConnectDB()
 	if dbErr != nil {
 		return fmt.Errorf("error connecting to database: %s", dbErr.Error())
 	}
 
-	defer db.Close()
+	defer func(db *sql.DB) {
+		err := db.Close()
+		if err != nil {
+			log.Printf("error closing connection to database...")
+		}
+	}(db)
 
 	for _, query := range migrationQueries {
 		log.Printf("Executing migration query: %s", query)
 		if _, err := db.Exec(query); err != nil {
-			return fmt.Errorf("migration error: %w", err)
+			return fmt.Errorf("migration error: %s", err)
 		}
 	}
 	return nil
