@@ -102,7 +102,7 @@ func (l *LoginUserData) UserSendOTP(mode string, sessID string, length int, wh *
 // LoginHandler renders the login page (GET) and processes login (POST).
 func (wh *WebHandlers) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	lp := LoginPage{
-		IsLoggedIn: wh.IsLoggedIn(r),
+		IsLoggedIn: wh.IsLoggedIn(r, w),
 	}
 
 	session, sessErr := wh.GetSession(r)
@@ -193,7 +193,7 @@ func (wh *WebHandlers) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		// load the login page with the email address filled-in and an empty OTP field
 
 		wh.Log.Debugf("handlers.LoginHandler: No OTP was provided by the user, sending OTP to their registered email")
-		
+
 		// Generate and send the OTP
 		otpSendErr := user.UserSendOTP("email", session.ID, configOTPLength, wh)
 		if otpSendErr != nil {
@@ -267,8 +267,8 @@ func (wh *WebHandlers) LoginHandler(w http.ResponseWriter, r *http.Request) {
 
 	wh.Log.Debugf("handlers.LoginHandler: setting session values now")
 
-	if err := session.Save(r, w); err != nil {
-		http.Error(w, "Failed to save session", http.StatusInternalServerError)
+	if err = session.Save(r, w); err != nil {
+		http.Error(w, fmt.Sprintf("Failed to save session: %s", err.Error()), http.StatusInternalServerError)
 		return
 	}
 
@@ -296,7 +296,7 @@ func (wh *WebHandlers) LogoutHandler(w http.ResponseWriter, r *http.Request) {
 func (wh *WebHandlers) RequireAuth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
-		if wh.IsLoggedIn(r) {
+		if wh.IsLoggedIn(r, w) {
 			http.Redirect(w, r, "/login", http.StatusSeeOther)
 			return
 		}
@@ -308,13 +308,13 @@ func (wh *WebHandlers) RequireAuth(next http.Handler) http.Handler {
 func (wh *WebHandlers) RequireAdmin(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// check if user is logged-in or not. If they are not, redirect them to login page
-		if !wh.IsLoggedIn(r) {
+		if !wh.IsLoggedIn(r, w) {
 			http.Redirect(w, r, "/login", http.StatusSeeOther)
 			return
 		}
 
 		// If execution reaches here, it means that the user is logged-in. Check if their userTypeID is 1 or not
-		if !wh.IsLoggedInAdmin(r) {
+		if !wh.IsLoggedInAdmin(r, w) {
 			http.Error(w, "Unauthorized: Admins only", http.StatusUnauthorized)
 			return
 		}

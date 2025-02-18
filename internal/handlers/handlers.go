@@ -49,7 +49,7 @@ func (wh *WebHandlers) GetSession(r *http.Request) (*sessions.Session, error) {
 	return wh.store.Get(r, wh.sessionName)
 }
 
-func (wh *WebHandlers) IsLoggedIn(r *http.Request) bool {
+func (wh *WebHandlers) IsLoggedIn(r *http.Request, w http.ResponseWriter) bool {
 	session, err := wh.store.Get(r, wh.sessionName)
 	if err != nil {
 		wh.Log.Debugf("handlers.WebHandlers.IsLoggedIn: error getting session: %s", err.Error())
@@ -63,7 +63,7 @@ func (wh *WebHandlers) IsLoggedIn(r *http.Request) bool {
 	if okIsLoggedIn && okUserType && okUserID && isLoggedIn == true {
 		// user is logged-in according to session. Let us check if they exist in the DB
 		wh.Log.Debugf("handlers.WebHandlers.IsLoggedIn: SQLEXEC: SELECT user_id, user_type_id FROM users WHERE user_id = %d AND user_type_id = %d", userID, userTypeID)
-		err := wh.db.QueryRow("SELECT user_id, user_type_id FROM users WHERE user_id = ? AND user_type_id = ?", userID, userTypeID).Scan(&dbUserID, &dbUserTypeID)
+		err = wh.db.QueryRow("SELECT user_id, user_type_id FROM users WHERE user_id = ? AND user_type_id = ?", userID, userTypeID).Scan(&dbUserID, &dbUserTypeID)
 		if err != nil {
 			wh.Log.Debugf("handlers.WebHandlers.IsLoggedIn: error validating user in DB: %s", err.Error())
 			return false
@@ -71,10 +71,24 @@ func (wh *WebHandlers) IsLoggedIn(r *http.Request) bool {
 		return true // user validated from both session and DB
 	}
 	wh.Log.Debugf("handlers.WebHandlers.IsLoggedIn: user could not be verified from session. Won't check in DB")
+	wh.Log.Debugf("handler.WebHandlers.IsLoggedIn: checking if the session values are set or not and adding accordingly")
+	if !okUserID {
+		session.Values["user_id"] = 0
+	}
+	if !okUserType {
+		session.Values["user_type_id"] = 0
+	}
+	if !okIsLoggedIn {
+		session.Values["is_logged_in"] = false
+	}
+	err = session.Save(r, w)
+	if err != nil {
+		wh.Log.Debugf("handlers.WebHandlers.IsLoggedIn: error saving session: %s", err.Error())
+	}
 	return false // user could not be validated from session. DB was not checked
 }
 
-func (wh *WebHandlers) IsLoggedInAdmin(r *http.Request) bool {
+func (wh *WebHandlers) IsLoggedInAdmin(r *http.Request, w http.ResponseWriter) bool {
 	session, err := wh.store.Get(r, wh.sessionName)
 	if err != nil {
 		wh.Log.Debugf("handlers.WebHandlers.IsLoggedIn: error getting session: %s", err.Error())
@@ -96,6 +110,20 @@ func (wh *WebHandlers) IsLoggedInAdmin(r *http.Request) bool {
 		return true // user validated from both session and DB
 	}
 	wh.Log.Debugf("handlers.WebHandlers.IsLoggedInAdmin: user could not be verified from session. Won't check in DB")
+	wh.Log.Debugf("handler.WebHandlers.IsLoggedInAdmin: checking if the session values are set or not and adding accordingly")
+	if !okUserID {
+		session.Values["user_id"] = 0
+	}
+	if !okUserType {
+		session.Values["user_type_id"] = 0
+	}
+	if !okIsLoggedIn {
+		session.Values["is_logged_in"] = false
+	}
+	err = session.Save(r, w)
+	if err != nil {
+		wh.Log.Debugf("handlers.WebHandlers.IsLoggedInAdmin: error saving session: %s", err.Error())
+	}
 	return false // user could not be validated from session. DB was not checked
 }
 

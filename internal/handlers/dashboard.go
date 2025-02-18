@@ -15,7 +15,7 @@ type DashboardHandlerData struct {
 
 func (wh *WebHandlers) DashboardHandler(w http.ResponseWriter, r *http.Request) {
 	wh.Log.Debugf("inside dashboard handler")
-	data, err := wh.ExecuteTemplate("dashboard", DashboardHandlerData{IsLoggedIn: wh.IsLoggedIn(r), IsLoggedInAdmin: wh.IsLoggedInAdmin(r), Errors: nil})
+	data, err := wh.ExecuteTemplate("dashboard", DashboardHandlerData{IsLoggedIn: wh.IsLoggedIn(r, w), IsLoggedInAdmin: wh.IsLoggedInAdmin(r, w), Errors: nil})
 	if err != nil {
 
 		http.Error(w, err.Error(), http.StatusInternalServerError)
