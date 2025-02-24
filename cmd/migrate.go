@@ -20,7 +20,7 @@ var migrateCmd = &cobra.Command{
 		}
 
 		if err := db.MigrateDB(_u, createDB); err != nil {
-			log.Fatalf("Migration failed: %v", err)
+			log.Fatalf("Migration failed: %s", err.Error())
 		}
 		log.Println("Migration successful!")
 	},

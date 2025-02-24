@@ -2,15 +2,15 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/gorilla/sessions"
 	"github.com/scalland/bitebuddy/internal/handlers"
+	"github.com/scalland/bitebuddy/internal/routes"
 	"github.com/scalland/bitebuddy/pkg/log"
+	"github.com/scalland/bitebuddy/pkg/utils"
+	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"github.com/srinathgs/mysqlstore"
 	"log/slog"
 	"net/http"
-
-	"github.com/scalland/bitebuddy/internal/routes"
-	"github.com/spf13/cobra"
 )
 
 var serveCmd = &cobra.Command{
@@ -43,7 +43,37 @@ var serveCmd = &cobra.Command{
 		// Initialize a session store (in production, use a secure key)
 		//var sessStore = sessions.NewCookieStore([]byte(viper.GetString("session_secret")))
 
-		sessStore := sessions.NewFilesystemStore(viper.GetString("session_store_path"), []byte(sessSecret))
+		// Filesystem Store
+		//sessStore := sessions.NewFilesystemStore(viper.GetString("session_store_path"), []byte(sessSecret))
+
+		sessionStoreDBTable := viper.GetString("session_db_table")
+		sessionCookiePath := viper.GetString("session_cookie_path")
+		sessionCookieAge := viper.GetInt("session_cookie_validity_mins")
+
+		var sessionSameSite http.SameSite
+		sameSiteStr := viper.GetString("session_cookie_same_site")
+		switch sameSiteStr {
+		case "default":
+			sessionSameSite = http.SameSiteDefaultMode
+		case "lax":
+			sessionSameSite = http.SameSiteLaxMode
+		case "strict":
+			sessionSameSite = http.SameSiteStrictMode
+		case "none":
+			sessionSameSite = http.SameSiteNoneMode
+		}
+
+		sessStore, sessStoreErr := mysqlstore.NewMySQLStoreFromConnection(_db, sessionStoreDBTable, sessionCookiePath, sessionCookieAge*60, []byte(sessSecret))
+		if sessStoreErr != nil {
+			l.Fatalf("%s.cmd.serve: error connecting to session store: %s", utils.APP_NAME, sessStoreErr.Error())
+		}
+
+		sessStore.Options.HttpOnly = viper.GetBool("session_cookie_http_only")
+		sessStore.Options.Secure = viper.GetBool("session_cookie_secure")
+		sessStore.Options.Domain = viper.GetString("session_cookie_domain")
+		sessStore.Options.SameSite = sessionSameSite
+
+		sessStore.Options.Partitioned = viper.GetBool("session_cookie_partitioned")
 
 		themeName := viper.GetString("theme")
 

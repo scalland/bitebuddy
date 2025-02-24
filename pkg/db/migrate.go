@@ -130,13 +130,23 @@ var migrationQueries = []string{
 }
 
 func MigrateDB(u *utils.Utils, createDB bool) error {
+	// Migration queries that need to be generated with dynamic values using fmt.Sprintf()
+	var sprintFFD = []string{
+		// Session Store for Gorilla Sessions in MySQL
+		fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s\n(id INT NOT NULL AUTO_INCREMENT,\nsession_data LONGBLOB,\ncreated_on TIMESTAMP DEFAULT NOW(),\nmodified_on TIMESTAMP NOT NULL DEFAULT NOW() ON UPDATE CURRENT_TIMESTAMP,\nexpires_on TIMESTAMP DEFAULT NOW(),\nPRIMARY KEY(id))ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin", viper.GetString(
+			"session_db_table")),
+	}
+	migrationQueries = append(migrationQueries, sprintFFD...)
 	if createDB {
 		log.Printf("User requested to create the database as well. Trying that now...")
 		db, dbErr := u.ConnectSansDB()
 		if dbErr != nil {
 			return fmt.Errorf("error connecting to database: %s", dbErr.Error())
 		}
-		_, err := db.Exec(fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %s", viper.GetString("db_database")))
+		log.Printf("successfully connected to database server without a database")
+		createDBQuery := fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %s", viper.GetString("db_database"))
+		log.Printf("Creating Database:\n%s\n", createDBQuery)
+		_, err := db.Exec(createDBQuery)
 		if err != nil {
 			return fmt.Errorf("migration error: %s", err.Error())
 		}

@@ -10,6 +10,7 @@ import (
 	"github.com/gorilla/sessions"
 	"github.com/scalland/bitebuddy/pkg/log"
 	"github.com/scalland/bitebuddy/pkg/utils"
+	"github.com/srinathgs/mysqlstore"
 	"html/template"
 	"io/fs"
 	"net/http"
@@ -25,11 +26,11 @@ type WebHandlers struct {
 	templatesFS     *embed.FS
 	tpl             *template.Template
 	themeName       string
-	store           *sessions.FilesystemStore
+	store           *mysqlstore.MySQLStore
 	sessionName     string
 }
 
-func NewWebHandlers(db *sql.DB, l *log.Logger, u *utils.Utils, tFS *embed.FS, sessionStore *sessions.FilesystemStore, tpl *template.Template, tName, sName string, adminUserTypeID int) *WebHandlers {
+func NewWebHandlers(db *sql.DB, l *log.Logger, u *utils.Utils, tFS *embed.FS, sessionStore *mysqlstore.MySQLStore, tpl *template.Template, tName, sName string, adminUserTypeID int) *WebHandlers {
 	return &WebHandlers{
 		adminUserTypeID: adminUserTypeID,
 		db:              db,
