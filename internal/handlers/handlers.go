@@ -21,19 +21,23 @@ import (
 type WebHandlers struct {
 	adminUserTypeID int
 	db              *sql.DB
+	isLoggedIn      bool
+	isAdmin         bool
 	Log             *log.Logger
-	u               *utils.Utils
+	store           *mysqlstore.MySQLStore
+	sessionName     string
 	templatesFS     *embed.FS
 	tpl             *template.Template
 	themeName       string
-	store           *mysqlstore.MySQLStore
-	sessionName     string
+	u               *utils.Utils
 }
 
 func NewWebHandlers(db *sql.DB, l *log.Logger, u *utils.Utils, tFS *embed.FS, sessionStore *mysqlstore.MySQLStore, tpl *template.Template, tName, sName string, adminUserTypeID int) *WebHandlers {
 	return &WebHandlers{
 		adminUserTypeID: adminUserTypeID,
 		db:              db,
+		isLoggedIn:      false,
+		isAdmin:         false,
 		Log:             l,
 		u:               u,
 		templatesFS:     tFS,
@@ -48,6 +52,16 @@ func NewWebHandlers(db *sql.DB, l *log.Logger, u *utils.Utils, tFS *embed.FS, se
 // been set in cmd/serve.go for this instance of the WebHandlers. For details on gorilla function, go to: https://pkg.go.dev/github.com/gorilla/sessions@v1.4.0#CookieStore.Get
 func (wh *WebHandlers) GetSession(r *http.Request) (*sessions.Session, error) {
 	return wh.store.Get(r, wh.sessionName)
+}
+
+// GetIsLoggedIn - returns the value of WebHandlers.isLoggedIn
+func (wh *WebHandlers) GetIsLoggedIn() bool {
+	return wh.isLoggedIn
+}
+
+// GetIsAdmin - returns the value of WebHandlers.isAdmin
+func (wh *WebHandlers) GetIsAdmin() bool {
+	return wh.isAdmin
 }
 
 func (wh *WebHandlers) IsLoggedIn(r *http.Request, w http.ResponseWriter) bool {
@@ -69,24 +83,31 @@ func (wh *WebHandlers) IsLoggedIn(r *http.Request, w http.ResponseWriter) bool {
 			wh.Log.Debugf("handlers.WebHandlers.IsLoggedIn: error validating user in DB: %s", err.Error())
 			return false
 		}
-		return true // user validated from both session and DB
+		wh.isLoggedIn = true
+		return wh.isLoggedIn // user validated from both session and DB
 	}
 	wh.Log.Debugf("handlers.WebHandlers.IsLoggedIn: user could not be verified from session. Won't check in DB")
 	wh.Log.Debugf("handler.WebHandlers.IsLoggedIn: checking if the session values are set or not and adding accordingly")
 	if !okUserID {
+		wh.Log.Debugf("handler.WebHandlers.IsLoggedIn: value for user_id is not set. Setting it")
 		session.Values["user_id"] = 0
 	}
 	if !okUserType {
+		wh.Log.Debugf("handler.WebHandlers.IsLoggedIn: value for user_type_id is not set. Setting it")
 		session.Values["user_type_id"] = 0
 	}
 	if !okIsLoggedIn {
+		wh.Log.Debugf("handler.WebHandlers.IsLoggedIn: value for is_logged_in is not set. Setting it")
 		session.Values["is_logged_in"] = false
 	}
+	wh.Log.Debugf("handler.WebHandlers.IsLoggedIn: saving the set values to the session")
 	err = session.Save(r, w)
 	if err != nil {
 		wh.Log.Debugf("handlers.WebHandlers.IsLoggedIn: error saving session: %s", err.Error())
 	}
-	return false // user could not be validated from session. DB was not checked
+	wh.Log.Debugf("handler.WebHandlers.IsLoggedIn: saved empty values into the session successfully with session ID: %s", session.ID)
+	wh.Log.Debugf("handlers.WebHandlers.IsLoggedIn: returning %t", wh.isLoggedIn)
+	return wh.isLoggedIn // user could not be validated from session. DB was not checked
 }
 
 func (wh *WebHandlers) IsLoggedInAdmin(r *http.Request, w http.ResponseWriter) bool {
@@ -103,29 +124,36 @@ func (wh *WebHandlers) IsLoggedInAdmin(r *http.Request, w http.ResponseWriter) b
 	if okIsLoggedIn && okUserType && okUserID && isLoggedIn == true && userTypeID == wh.adminUserTypeID {
 		// user is logged-in according to session and are an admin user. Let us check if they exist in the DB
 		wh.Log.Debugf("handlers.WebHandlers.IsLoggedInAdmin: SQLEXEC: SELECT user_id, user_type_id FROM users WHERE user_id = %d AND user_type_id = %d", userID, userTypeID)
-		err := wh.db.QueryRow("SELECT user_id, user_type_id FROM users WHERE user_id = ? AND user_type_id = ?", userID, userTypeID).Scan(&dbUserID, &dbUserTypeID)
+		err = wh.db.QueryRow("SELECT user_id, user_type_id FROM users WHERE user_id = ? AND user_type_id = ?", userID, userTypeID).Scan(&dbUserID, &dbUserTypeID)
 		if err != nil {
 			wh.Log.Debugf("handlers.WebHandlers.IsLoggedInAdmin: error validating user in DB: %s", err.Error())
 			return false
 		}
-		return true // user validated from both session and DB
+		wh.isLoggedIn = true
+		wh.isAdmin = true
+		return wh.isAdmin // user validated from both session and DB
 	}
 	wh.Log.Debugf("handlers.WebHandlers.IsLoggedInAdmin: user could not be verified from session. Won't check in DB")
 	wh.Log.Debugf("handler.WebHandlers.IsLoggedInAdmin: checking if the session values are set or not and adding accordingly")
 	if !okUserID {
+		wh.Log.Debugf("handler.WebHandlers.IsLoggedIn: value for user_id is not set. Setting it")
 		session.Values["user_id"] = 0
 	}
 	if !okUserType {
+		wh.Log.Debugf("handler.WebHandlers.IsLoggedIn: value for user_type_id is not set. Setting it")
 		session.Values["user_type_id"] = 0
 	}
 	if !okIsLoggedIn {
+		wh.Log.Debugf("handler.WebHandlers.IsLoggedIn: value for is_logged_in is not set. Setting it")
 		session.Values["is_logged_in"] = false
 	}
 	err = session.Save(r, w)
 	if err != nil {
 		wh.Log.Debugf("handlers.WebHandlers.IsLoggedInAdmin: error saving session: %s", err.Error())
 	}
-	return false // user could not be validated from session. DB was not checked
+	wh.Log.Debugf("handler.WebHandlers.IsLoggedIn: saved empty values into the session successfully with session ID: %s", session.ID)
+	wh.Log.Debugf("handlers.WebHandlers.IsLoggedIn: returning %t", wh.isLoggedIn && wh.isAdmin)
+	return wh.isLoggedIn && wh.isAdmin // user could not be validated from session. DB was not checked
 }
 
 func (wh *WebHandlers) ReconnectDB() error {

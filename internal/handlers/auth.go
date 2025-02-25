@@ -29,7 +29,7 @@ type OTPValidationData struct {
 	OTPValidTill  int64
 	OTPSessionID  string
 	OTPUserEmail  string
-	OTPUserTypeID int64
+	OTPUserTypeID int
 }
 
 func (l *LoginUserData) UserSendOTP(mode string, sessID string, length int, wh *WebHandlers) error {
@@ -266,6 +266,7 @@ func (wh *WebHandlers) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	lp.IsLoggedIn = true
 
 	wh.Log.Debugf("handlers.LoginHandler: setting session values now")
+	wh.Log.Debugf("handlers.LoginHandler: user_id = %d, user_type_id = %d, is_logged_in = %t", session.Values["user_id"], session.Values["user_type_id"], session.Values["is_logged_in"])
 
 	if err = session.Save(r, w); err != nil {
 		http.Error(w, fmt.Sprintf("Failed to save session: %s", err.Error()), http.StatusInternalServerError)
@@ -280,13 +281,21 @@ func (wh *WebHandlers) LoginHandler(w http.ResponseWriter, r *http.Request) {
 
 // LogoutHandler clears the session and logs the user out.
 func (wh *WebHandlers) LogoutHandler(w http.ResponseWriter, r *http.Request) {
-	session, _ := wh.GetSession(r)
+	session, err := wh.GetSession(r)
+	if err != nil {
+		wh.Log.Debugf("handlers.LogoutHandler: error getting session: %s", err.Error())
+		http.Error(w, fmt.Sprintf("failed to get session: %s", err.Error()), http.StatusInternalServerError)
+	}
 	delete(session.Values, "user_id")
 	delete(session.Values, "user_type_id")
 	delete(session.Values, "is_logged_in")
-	err := session.Save(r, w)
+	wh.isLoggedIn = false
+	wh.isAdmin = false
+	
+	err = session.Save(r, w)
 	if err != nil {
-		http.Error(w, "Failed to save session", http.StatusInternalServerError)
+		wh.Log.Debugf("handlers.LogoutHandler: error saving session: %s", err.Error())
+		http.Error(w, fmt.Sprintf("failed to save session: %s", err.Error()), http.StatusInternalServerError)
 		return
 	}
 	http.Redirect(w, r, "/login", http.StatusSeeOther)
@@ -296,7 +305,7 @@ func (wh *WebHandlers) LogoutHandler(w http.ResponseWriter, r *http.Request) {
 func (wh *WebHandlers) RequireAuth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
-		if wh.IsLoggedIn(r, w) {
+		if !wh.IsLoggedIn(r, w) {
 			http.Redirect(w, r, "/login", http.StatusSeeOther)
 			return
 		}
