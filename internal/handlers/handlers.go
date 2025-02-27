@@ -70,6 +70,7 @@ func (wh *WebHandlers) IsLoggedIn(r *http.Request, w http.ResponseWriter) bool {
 		wh.Log.Debugf("handlers.WebHandlers.IsLoggedIn: error getting session: %s", err.Error())
 		return false
 	}
+	wh.Log.Debugf("handlers.WebHandlers.IsLoggedIn: connected to session with ID: %s", session.ID)
 	userID, okUserID := session.Values["user_id"].(int64)
 	userTypeID, okUserType := session.Values["user_type_id"].(int)
 	isLoggedIn, okIsLoggedIn := session.Values["is_logged_in"].(bool)
@@ -91,14 +92,17 @@ func (wh *WebHandlers) IsLoggedIn(r *http.Request, w http.ResponseWriter) bool {
 	if !okUserID {
 		wh.Log.Debugf("handler.WebHandlers.IsLoggedIn: value for user_id is not set. Setting it")
 		session.Values["user_id"] = 0
+		wh.isLoggedIn = false
 	}
 	if !okUserType {
 		wh.Log.Debugf("handler.WebHandlers.IsLoggedIn: value for user_type_id is not set. Setting it")
 		session.Values["user_type_id"] = 0
+		wh.isLoggedIn = false
 	}
 	if !okIsLoggedIn {
 		wh.Log.Debugf("handler.WebHandlers.IsLoggedIn: value for is_logged_in is not set. Setting it")
 		session.Values["is_logged_in"] = false
+		wh.isLoggedIn = false
 	}
 	wh.Log.Debugf("handler.WebHandlers.IsLoggedIn: saving the set values to the session")
 	err = session.Save(r, w)
@@ -113,9 +117,10 @@ func (wh *WebHandlers) IsLoggedIn(r *http.Request, w http.ResponseWriter) bool {
 func (wh *WebHandlers) IsLoggedInAdmin(r *http.Request, w http.ResponseWriter) bool {
 	session, err := wh.store.Get(r, wh.sessionName)
 	if err != nil {
-		wh.Log.Debugf("handlers.WebHandlers.IsLoggedIn: error getting session: %s", err.Error())
+		wh.Log.Debugf("handlers.WebHandlers.IsLoggedInAdmin: error getting session: %s", err.Error())
 		return false
 	}
+	wh.Log.Debugf("handlers.WebHandlers.IsLoggedInAdmin: connected to session with ID: %s", session.ID)
 	userID, okUserID := session.Values["user_id"].(int64)
 	userTypeID, okUserType := session.Values["user_type_id"].(int)
 	isLoggedIn, okIsLoggedIn := session.Values["is_logged_in"].(bool)
@@ -136,23 +141,25 @@ func (wh *WebHandlers) IsLoggedInAdmin(r *http.Request, w http.ResponseWriter) b
 	wh.Log.Debugf("handlers.WebHandlers.IsLoggedInAdmin: user could not be verified from session. Won't check in DB")
 	wh.Log.Debugf("handler.WebHandlers.IsLoggedInAdmin: checking if the session values are set or not and adding accordingly")
 	if !okUserID {
-		wh.Log.Debugf("handler.WebHandlers.IsLoggedIn: value for user_id is not set. Setting it")
+		wh.Log.Debugf("handler.WebHandlers.IsLoggedInAdmin: value for user_id is not set. Setting it")
 		session.Values["user_id"] = 0
 	}
 	if !okUserType {
-		wh.Log.Debugf("handler.WebHandlers.IsLoggedIn: value for user_type_id is not set. Setting it")
+		wh.Log.Debugf("handler.WebHandlers.IsLoggedInAdmin: value for user_type_id is not set. Setting it")
 		session.Values["user_type_id"] = 0
+		wh.isAdmin = false
 	}
 	if !okIsLoggedIn {
-		wh.Log.Debugf("handler.WebHandlers.IsLoggedIn: value for is_logged_in is not set. Setting it")
+		wh.Log.Debugf("handler.WebHandlers.IsLoggedInAdmin: value for is_logged_in is not set. Setting it")
 		session.Values["is_logged_in"] = false
+		wh.isLoggedIn = false
 	}
 	err = session.Save(r, w)
 	if err != nil {
 		wh.Log.Debugf("handlers.WebHandlers.IsLoggedInAdmin: error saving session: %s", err.Error())
 	}
-	wh.Log.Debugf("handler.WebHandlers.IsLoggedIn: saved empty values into the session successfully with session ID: %s", session.ID)
-	wh.Log.Debugf("handlers.WebHandlers.IsLoggedIn: returning %t", wh.isLoggedIn && wh.isAdmin)
+	wh.Log.Debugf("handler.WebHandlers.IsLoggedInAdmin: saved empty values into the session successfully with session ID: %s", session.ID)
+	wh.Log.Debugf("handlers.WebHandlers.IsLoggedInAdmin: returning %t", wh.isLoggedIn && wh.isAdmin)
 	return wh.isLoggedIn && wh.isAdmin // user could not be validated from session. DB was not checked
 }
 

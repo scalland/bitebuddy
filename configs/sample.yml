@@ -26,4 +26,5 @@ session_cookie_same_site: true
 session_cookie_partitioned: false
 session_user_header_name: "X-your-header-name-here-in-caps"
 
+delete_restricted_user_types: "1,2,3,4"
 admin_user_type_id: 1

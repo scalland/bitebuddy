@@ -291,7 +291,7 @@ func (wh *WebHandlers) LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	delete(session.Values, "is_logged_in")
 	wh.isLoggedIn = false
 	wh.isAdmin = false
-	
+
 	err = session.Save(r, w)
 	if err != nil {
 		wh.Log.Debugf("handlers.LogoutHandler: error saving session: %s", err.Error())

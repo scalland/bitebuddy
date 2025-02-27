@@ -1,14 +1,14 @@
-{{ define "title" }}{{ if .UserTypeID }}Edit User{{ else }}New User{{ end }}{{ end }}
+{{ define "title" }}{{ if .UserTypes.UserTypeID }}Edit User{{ else }}New User{{ end }}{{ end }}
 {{ define "content" }}
 <div class="row">
     <div class="col-md-6 offset-md-3">
-        <h2>{{ if .UserTypeID }}Edit User{{ else }}New User{{ end }}</h2>
-        <form method="POST" action="{{ if .UserTypeID }}/user_types/edit?id={{ .UserTypeID }}{{ else }}/user_types/new{{ end }}">
+        <h2>{{ if .UserTypes.UserTypeID }}Edit User{{ else }}New User Type{{ end }}</h2>
+        <form method="POST" action="{{ if .UserTypes.UserTypeID }}/user_types/edit?id={{ .UserTypes.UserTypeID }}{{ else }}/user_types/new{{ end }}">
             <div class="mb-3">
                 <label for="usertypename" class="form-label">User Type Name</label>
-                <input type="usertypename" name="usertypename" class="form-control" id="usertypename" value="{{ .UserTypeName }}" required>
+                <input type="usertypename" name="usertypename" class="form-control" id="usertypename" value="{{ .UserTypes.UserTypeName }}" required>
             </div>
-            <button type="submit" class="btn btn-primary">{{ if .UserTypeID }}Update{{ else }}Create{{ end }}</button>
+            <button type="submit" class="btn btn-primary">{{ if .UserTypes.UserTypeID }}Update{{ else }}Create{{ end }}</button>
         </form>
     </div>
 </div>
