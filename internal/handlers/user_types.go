@@ -213,6 +213,7 @@ func (wh *WebHandlers) UserTypesDeleteHandler(w http.ResponseWriter, r *http.Req
 
 	if strings.Contains(deleteRestrictedUserTypes, idStr) {
 		http.Error(w, fmt.Sprintf("User Type '%s' is configured as restricted from deletetion", idStr), http.StatusConflict)
+		return
 	}
 	id, _ := strconv.ParseInt(idStr, 10, 64)
 	stmt, err := wh.db.Prepare("DELETE FROM user_types WHERE user_type_id=?")
