@@ -6,11 +6,11 @@
         <form method="POST" action="{{ if .U.ID }}/users/edit?id={{ .U.ID }}{{ else }}/users/new{{ end }}">
             <div class="mb-3">
                 <label for="email" class="form-label">Email</label>
-                <input type="email" name="email" class="form-control" id="email" value="{{ .U.Email }}" required>
+                <input type="email" name="email" class="form-control" id="email" value="{{ if .U.Email }}{{ U.Email }}{{ else }}{{}}{{end}}" required>
             </div>
             <div class="mb-3">
                 <label for="mobile" class="form-label">Mobile Number</label>
-                <input type="text" name="mobile" class="form-control" id="mobile" value="{{ .U.MobileNumber }}" required>
+                <input type="text" name="mobile" class="form-control" id="mobile" value="{{ if .U.MobileNumber }}{{ .U.MobileNumber }}{{ else }}{{}}{{end}}" required>
             </div>
             <div class="mb-3">
                 <label for="user_type" class="form-label">User Type</label>

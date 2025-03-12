@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"database/sql"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -20,13 +21,20 @@ type User struct {
 	LastAccessedFrom string
 }
 
+type UsersHandlerTemplateData struct {
+	IsLoggedIn      bool
+	IsLoggedInAdmin bool
+	Errors          []string
+	Users           []User
+}
+
 // -----------------------------------------------------------------
 // Users Handlers
 
 func (wh *WebHandlers) UsersHandler(w http.ResponseWriter, r *http.Request) {
 	reconnectErr := wh.ReconnectDB()
 	if reconnectErr != nil {
-		wh.Log.Errorf("Error reconnecting to database: %s", reconnectErr.Error())
+		wh.Log.Errorf("handlers.WebHandlers.UsersHandler: error reconnecting to database: %s", reconnectErr.Error())
 		http.Error(w, reconnectErr.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -35,7 +43,12 @@ func (wh *WebHandlers) UsersHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	defer rows.Close()
+	defer func(rows *sql.Rows) {
+		err := rows.Close()
+		if err != nil {
+			wh.Log.Errorf("handlers.WebHandlers.UsersHandler: error closing rows: %s", err.Error())
+		}
+	}(rows)
 
 	var users []User
 	for rows.Next() {
@@ -48,7 +61,15 @@ func (wh *WebHandlers) UsersHandler(w http.ResponseWriter, r *http.Request) {
 		u.UserTypeName = wh.UserTypeNameToString(u.UserTypeName)
 		users = append(users, u)
 	}
-	tmpl, tmplErr := wh.ExecuteTemplate("users", users)
+
+	templateData := UsersHandlerTemplateData{
+		IsLoggedIn:      wh.isLoggedIn,
+		IsLoggedInAdmin: wh.isAdmin,
+		Errors:          []string{},
+		Users:           users,
+	}
+
+	tmpl, tmplErr := wh.ExecuteTemplate("users", templateData)
 	if tmplErr != nil {
 		slog.Error(fmt.Sprintf("Error executing template: users.html: %s", tmplErr.Error()))
 		http.Error(w, tmplErr.Error(), http.StatusInternalServerError)
@@ -56,12 +77,45 @@ func (wh *WebHandlers) UsersHandler(w http.ResponseWriter, r *http.Request) {
 	wh.WriteHTML(w, tmpl, http.StatusOK)
 }
 
+type UserEditData struct {
+	IsLoggedIn      bool
+	IsLoggedInAdmin bool
+	Errors          []string
+	U               User
+	UserTypesData   []UserTypes
+}
+
 func (wh *WebHandlers) UserNewHandler(w http.ResponseWriter, r *http.Request) {
+	templateData := UserEditData{
+		IsLoggedIn:      wh.isLoggedIn,
+		IsLoggedInAdmin: wh.isAdmin,
+		Errors:          []string{},
+		U: User{
+			ID:               0,
+			Email:            "",
+			MobileNumber:     "",
+			UserTypeID:       0,
+			UserTypeName:     "",
+			IsActive:         false,
+			CreatedAt:        time.Time{},
+			LastLogin:        time.Time{},
+			LastAccessedFrom: "",
+		},
+		UserTypesData: nil,
+	}
+	var err error
+	templateData.UserTypesData, err = wh.GetUserTypes()
+	if err != nil {
+		wh.Log.Errorf("handlers.WebHandlers.UserNewHandler: error getting user types data: %s", err.Error())
+		templateData.Errors = append(templateData.Errors, fmt.Sprintf("error getting user types data: %s", err.Error()))
+	}
+
 	if r.Method == http.MethodGet {
-		tmpl, tmplErr := wh.ExecuteTemplate("user_form", nil)
+		tmpl, tmplErr := wh.ExecuteTemplate("user_form", templateData)
 		if tmplErr != nil {
-			slog.Error(fmt.Sprintf("Error executing template: users: %s", tmplErr.Error()))
+			slog.Error(fmt.Sprintf("handlers.WebHandlers.UserNewHandler: error executing template: users: %s", tmplErr.Error()))
 			http.Error(w, tmplErr.Error(), http.StatusInternalServerError)
+			return
 		}
 		wh.WriteHTML(w, tmpl, http.StatusOK)
 		return
@@ -78,18 +132,18 @@ func (wh *WebHandlers) UserNewHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	defer stmt.Close()
+	defer func(stmt *sql.Stmt) {
+		err := stmt.Close()
+		if err != nil {
+			wh.Log.Errorf("handlers.WebHandlers.UserNewHandler: error closing rows: %s", err.Error())
+		}
+	}(stmt)
 	_, err = stmt.Exec(email, mobile, userType, isActive, now, now, "")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	http.Redirect(w, r, "/users", http.StatusSeeOther)
-}
-
-type UserEditData struct {
-	U             User
-	UserTypesData []UserTypes
 }
 
 func (wh *WebHandlers) UserEditHandler(w http.ResponseWriter, r *http.Request) {
