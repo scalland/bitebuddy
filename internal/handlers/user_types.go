@@ -3,6 +3,7 @@ package handlers
 import (
 	"database/sql"
 	"fmt"
+	"github.com/scalland/bitebuddy/pkg/utils"
 	"github.com/spf13/viper"
 	"log/slog"
 	"net/http"
@@ -157,6 +158,7 @@ func (wh *WebHandlers) UserTypesNewHandler(w http.ResponseWriter, r *http.Reques
 type UserTypesEditHandlerTemplateData UserTypesNewHandlerTemplateData
 
 func (wh *WebHandlers) UserTypesEditHandler(w http.ResponseWriter, r *http.Request) {
+	wh.Log.Debugf("%s.handlers.UserTypesEditHandler: %s %s", utils.APP_NAME, r.Method, r.URL.Path)
 	idStr := r.URL.Query().Get("id")
 	id, _ := strconv.ParseInt(idStr, 10, 64)
 	if r.Method == http.MethodGet {
@@ -176,7 +178,7 @@ func (wh *WebHandlers) UserTypesEditHandler(w http.ResponseWriter, r *http.Reque
 		}
 		tmpl, tmplErr := wh.ExecuteTemplate("user_types_form", templateData)
 		if tmplErr != nil {
-			slog.Error(fmt.Sprintf("Error executing template: user_form.html: %s", tmplErr.Error()))
+			wh.Log.Errorf(fmt.Sprintf("Error executing template: user_form.html: %s", tmplErr.Error()))
 			http.Error(w, tmplErr.Error(), http.StatusInternalServerError)
 		}
 		wh.WriteHTML(w, tmpl, http.StatusOK)
@@ -200,7 +202,7 @@ func (wh *WebHandlers) UserTypesEditHandler(w http.ResponseWriter, r *http.Reque
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	http.Redirect(w, r, "/users_types", http.StatusSeeOther)
+	http.Redirect(w, r, "/user_types", http.StatusSeeOther)
 }
 
 func (wh *WebHandlers) UserTypesDeleteHandler(w http.ResponseWriter, r *http.Request) {

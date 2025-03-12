@@ -171,7 +171,7 @@ func (wh *WebHandlers) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	wh.Log.Debugf("handlers.LoginHandler: user specified by email %s does exist", email)
 
 	// If execution reaches this point, it means that a valid user exists and has been found
-	lp.UserEmail = user.Email // set the lon=gin page data with the email address
+	lp.UserEmail = user.Email // set the login page data with the email address
 
 	// Read the configured OTP Length for this application
 	configOTPLength := viper.GetInt("otp_length")
@@ -237,9 +237,13 @@ func (wh *WebHandlers) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	// if OTP is correct and valid, set lp.IsLoggedIn = true in session
 	var ovd OTPValidationData
 	unixTS := time.Now().Unix()
-	wh.Log.Debugf("handlers.LoginHandler: SQLEXEC: SELECT otr.otp_request_id, otr.user_id, otr.otp_code, otr.valid_till, otr.session_id, u.email, u.user_type_id FROM otp_requests AS otr LEFT JOIN users AS u ON otr.user_id=u.user_id WHERE u.email = %s AND otp_code = %s AND otr.session_id = %s AND otr.valid_till < %d", email, otp, session.ID, unixTS)
-	err = wh.db.QueryRow("SELECT otr.otp_request_id, otr.user_id, otr.otp_code, otr.valid_till, otr.session_id, u.email, u.user_type_id FROM otp_requests AS otr LEFT JOIN users AS u ON otr.user_id=u.user_id WHERE u.email = ? AND otp_code = ? AND otr.session_id = ? AND otr.valid_till < ?", email, otp, session.ID, unixTS).
-		Scan(&ovd.OTPRequestID, &ovd.OTPUserID, &ovd.OTP, &ovd.OTPValidTill, &ovd.OTPSessionID, &ovd.OTPUserEmail, &ovd.OTPUserTypeID)
+	wh.Log.Debugf("handlers.LoginHandler: SQLEXEC: SELECT otr.otp_request_id, otr.otp_code, otr.valid_till, otr.session_id FROM otp_requests AS otr  WHERE otr.user_id = %d AND otr.otp_code = '%s' AND otr.session_id = %d AND otr.valid_till >= %d", user.ID, otp, wh.u.Atoi(session.ID), unixTS)
+	err = wh.db.QueryRow("SELECT otr.otp_request_id, otr.otp_code, otr.valid_till, otr.session_id FROM otp_requests AS otr  WHERE otr.user_id = ? AND otr.otp_code = ? AND otr.session_id = ? AND otr.valid_till >= ?", user.ID, otp, wh.u.Atoi(session.ID), unixTS).
+		Scan(&ovd.OTPRequestID, &ovd.OTP, &ovd.OTPValidTill, &ovd.OTPSessionID)
+
+	ovd.OTPUserID = user.ID
+	ovd.OTPUserEmail = user.Email
+	ovd.OTPUserTypeID = user.UserType
 
 	if err != nil {
 		wh.Log.Debugf("handlers.LoginHandler: OTP could not be validated from the DB: %s", err.Error())
