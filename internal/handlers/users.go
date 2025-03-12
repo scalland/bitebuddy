@@ -121,15 +121,25 @@ func (wh *WebHandlers) UserNewHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// POST
-	email := r.FormValue("email")
-	mobile := r.FormValue("mobile")
+	templateData.U.Email = r.FormValue("email")
+	templateData.U.MobileNumber = r.FormValue("mobile")
 	userTypeStr := r.FormValue("user_type")
-	userType, _ := strconv.Atoi(userTypeStr)
-	isActive := r.FormValue("is_active") == "on"
+	templateData.U.UserTypeID = wh.u.Atoi(userTypeStr)
+	templateData.U.IsActive = r.FormValue("is_active") == "on"
+	lastAccessedFrom := "0.0.0.0"
 	now := time.Now()
-	stmt, err := wh.db.Prepare("INSERT INTO users (email, mobile_number, u.user_type_id AS userTypeID, ut.user_type_name, is_active, created_at, last_login, last_accessed_from) VALUES (?, ?, ?, ?, ?, ?, ?)")
+	stmt, err := wh.db.Prepare("INSERT INTO users(email, mobile_number, user_type_id, is_active, created_at, last_login, last_accessed_from) VALUES (?, ?, ?, ?, ?, ?, ?)")
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		tErr := fmt.Sprintf("error creating user: %s", err.Error())
+		templateData.Errors = append(templateData.Errors, tErr)
+		wh.Log.Errorf("handlers.WebHandlers.UserNewHandler: %s", tErr)
+		tmpl, tmplErr := wh.ExecuteTemplate("user_form", templateData)
+		if tmplErr != nil {
+			slog.Error(fmt.Sprintf("handlers.WebHandlers.UserNewHandler: error executing template: users: %s", tmplErr.Error()))
+			http.Error(w, tmplErr.Error(), http.StatusInternalServerError)
+			return
+		}
+		wh.WriteHTML(w, tmpl, http.StatusOK)
 		return
 	}
 	defer func(stmt *sql.Stmt) {
@@ -138,9 +148,18 @@ func (wh *WebHandlers) UserNewHandler(w http.ResponseWriter, r *http.Request) {
 			wh.Log.Errorf("handlers.WebHandlers.UserNewHandler: error closing rows: %s", err.Error())
 		}
 	}(stmt)
-	_, err = stmt.Exec(email, mobile, userType, isActive, now, now, "")
+	_, err = stmt.Exec(templateData.U.Email, templateData.U.MobileNumber, templateData.U.UserTypeID, templateData.U.IsActive, now, now, lastAccessedFrom)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		tErr := fmt.Sprintf("error creating user: %s", err.Error())
+		templateData.Errors = append(templateData.Errors, tErr)
+		wh.Log.Errorf("handlers.WebHandlers.UserNewHandler: %s", tErr)
+		tmpl, tmplErr := wh.ExecuteTemplate("user_form", templateData)
+		if tmplErr != nil {
+			slog.Error(fmt.Sprintf("handlers.WebHandlers.UserNewHandler: error executing template: users: %s", tmplErr.Error()))
+			http.Error(w, tmplErr.Error(), http.StatusInternalServerError)
+			return
+		}
+		wh.WriteHTML(w, tmpl, http.StatusOK)
 		return
 	}
 	http.Redirect(w, r, "/users", http.StatusSeeOther)
